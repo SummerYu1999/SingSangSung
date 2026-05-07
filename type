@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>歌詞背誦練習器</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 50px; background-color: #f4f4f9; }
+        .container { position: relative; width: 80%; max-width: 800px; font-size: 24px; line-height: 1.6; letter-spacing: 2px; }
+        
+        /* 淺灰色底字層 */
+        #lyric-placeholder {
+            color: #d3d3d3; /* 淺灰色 */
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            position: absolute;
+            top: 0; left: 0; z-index: 1;
+            pointer-events: none; /* 讓滑鼠點擊穿透 */
+        }
+
+        /* 實際輸入顯示層 */
+        #lyric-display {
+            color: #333;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 隱藏的原始輸入框 */
+        #lyric-input {
+            position: fixed;
+            opacity: 0;
+        }
+
+        .cursor { border-left: 2px solid #007bff; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+</head>
+<body onclick="document.getElementById('lyric-input').focus()">
+
+    <h2>歌詞背誦練習</h2>
+    <p style="color: #666; font-size: 14px;">(點擊頁面任何地方即可開始打字)</p>
+
+    <div class="container">
+        <div id="lyric-placeholder"></div>
+        <div id="lyric-display"></div>
+        <input type="text" id="lyric-input" autofocus>
+    </div>
+
+    <script>
+        // 這裡放入你的歌詞庫
+        const fullLyrics = "這裡是你想要背誦的歌詞範例\n第二行也可以正確顯示\n請開始輸入測試效果";
+        
+        const placeholder = document.getElementById('lyric-placeholder');
+        const display = document.getElementById('lyric-display');
+        const input = document.getElementById('lyric-input');
+
+        // 初始化底色歌詞
+        placeholder.innerText = fullLyrics;
+
+        input.addEventListener('input', () => {
+            const userIn = input.value;
+            let resultHTML = '';
+            
+            // 比對輸入字元
+            for (let i = 0; i < userIn.length; i++) {
+                if (userIn[i] === fullLyrics[i]) {
+                    resultHTML += `<span style="color: #000;">${fullLyrics[i]}</span>`;
+                } else {
+                    // 如果打錯，顯示紅色
+                    resultHTML += `<span style="color: #ff4d4d;">${fullLyrics[i]}</span>`;
+                }
+            }
+            
+            display.innerHTML = resultHTML + '<span class="cursor"></span>';
+            
+            // 檢查是否完成
+            if (userIn === fullLyrics) {
+                alert('背誦完成！');
+            }
+        });
+    </script>
+</body>
+</html>

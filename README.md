@@ -3,204 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SingSangSung - 沉浸式練習</title>
+    <title>SingSangSung - Game Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
-        :root { --primary: #74b9ff; --accent: #ff7675; --bg: #2d3436; --card: #353b48; --text: #dfe6e9; --gray: #636e72; }
+        :root { --primary: #74b9ff; --accent: #ff7675; --bg: #2d3436; --card: rgba(53, 59, 72, 0.9); --text: #dfe6e9; }
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
+        body { font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow: hidden; transition: background-color 0.3s ease; }
         
-        /* 頂部進度條 */
-        .progress-container { width: 100%; height: 6px; background: #1e272e; position: fixed; top: 0; z-index: 100; }
-        #progress-bar { width: 0%; height: 100%; background: var(--primary); box-shadow: 0 0 10px var(--primary); transition: width 0.2s; }
-
-        header { margin-top: 40px; text-align: center; width: 90%; max-width: 1000px; }
-        .stats-bar { display: flex; justify-content: space-between; background: var(--card); padding: 15px 25px; border-radius: 12px; margin: 20px 0; border: 1px solid #4b5563; }
-
-        /* 響應式佈局：電腦雙欄，手機單欄 */
-        .main-layout { display: flex; flex-wrap: wrap; width: 95%; max-width: 1100px; gap: 20px; padding-bottom: 50px; }
-        .practice-section { flex: 2; min-width: 350px; }
-        .info-section { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 15px; }
-
-        /* 練習區 */
-        .practice-window { 
-            position: relative; background: #1e2124; border-radius: 20px; height: 500px; overflow: hidden; 
-            border: 2px solid #4b5563; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        }
+        /* 頂部工具列 */
+        header { width: 100%; background: rgba(0,0,0,0.3); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
+        .tools { display: flex; gap: 15px; align-items: center; }
         
-        #scrolling-content {
-            position: absolute; width: 100%; padding: 200px 40px;
-            transition: transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-            font-size: 28px; line-height: 2.2; letter-spacing: 2px;
-        }
-
-        #text-display { white-space: pre-wrap; word-wrap: break-word; color: var(--gray); }
-        .cursor { border-left: 3px solid var(--primary); margin-left: 2px; animation: blink 0.8s infinite; }
+        /* 練習視窗 */
+        .game-container { position: relative; width: 95%; max-width: 1000px; margin-top: 20px; display: grid; grid-template-columns: 1fr 300px; gap: 20px; height: 80vh; }
+        .practice-window { position: relative; background: rgba(0,0,0,0.4); border-radius: 20px; border: 2px solid #555; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        #scrolling-content { position: absolute; width: 100%; padding: 250px 50px; transition: transform 0.2s cubic-bezier(0.1, 0.9, 0.2, 1); font-size: 32px; font-weight: bold; line-height: 2; letter-spacing: 3px; }
+        
+        #text-display { white-space: pre-wrap; color: #555; position: relative; }
+        .char-correct { color: #fff; text-shadow: 0 0 10px var(--primary); }
+        .char-wrong { color: var(--accent); background: rgba(255,118,117,0.3); }
+        .cursor { border-left: 4px solid var(--primary); animation: blink 0.8s infinite; margin-left: 4px; }
         @keyframes blink { 50% { opacity: 0; } }
 
-        .char-correct { color: var(--text); text-shadow: 0 0 5px var(--primary); }
-        .char-wrong { color: var(--accent); background: rgba(255,118,117,0.2); border-radius: 4px; }
+        /* Combo 數字特效 */
+        #combo-pop { position: absolute; top: 10%; right: 10%; font-size: 80px; font-weight: 900; font-style: italic; color: var(--accent); pointer-events: none; opacity: 0; transform: scale(0.5); transition: all 0.1s; z-index: 50; }
+        .pop-animation { opacity: 1 !important; transform: scale(1.2) rotate(-5deg) !important; }
 
-        /* 資訊卡 */
-        .info-card { background: var(--card); padding: 20px; border-radius: 15px; border-left: 5px solid var(--primary); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .card-label { font-size: 12px; text-transform: uppercase; color: var(--primary); font-weight: bold; margin-bottom: 8px; }
+        /* 側邊欄 */
+        .sidebar { display: flex; flex-direction: column; gap: 15px; }
+        .glass-card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
 
         #invisible-input { position: fixed; top: -100px; opacity: 0; }
-
-        /* 飄浮星星特效 */
-        .star { position: absolute; pointer-events: none; animation: floatUp 1.5s ease-out forwards; font-size: 20px; }
-        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-100px) scale(1.5); opacity: 0; } }
+        canvas#sparks { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 99; }
     </style>
 </head>
 <body onclick="document.getElementById('invisible-input').focus()">
 
-    <div class="progress-container"><div id="progress-bar"></div></div>
+    <canvas id="sparks"></canvas>
 
     <header>
-        <h1 style="color: var(--primary); margin-bottom: 10px;">SingSangSung</h1>
-        <div class="stats-bar">
-            <select id="song-selector" onchange="initSong()" style="background:#2d3436; color:white; border:1px solid #636e72; padding:5px 10px; border-radius:6px;">
-                <option value="">-- 選取練習曲目 --</option>
-                <option value="song1">中文：小幸運</option>
-                <option value="song2">英文：This Is Me</option>
+        <div class="tools">
+            <span style="font-weight: bold; color: var(--primary);">SingSangSung Game</span>
+            <select id="song-selector" onchange="initSong()" style="padding: 5px; border-radius: 5px; background: #444; color: #fff;">
+                <option value="">-- 選擇曲目 --</option>
+                <option value="song2">This Is Me (EN)</option>
             </select>
-            <div style="color:var(--accent); font-weight:bold;">Combo: <span id="combo-count">0</span></div>
-            <div id="accuracy-display">進度: 0%</div>
+            <label>背景色：<input type="color" id="bg-picker" value="#2d3436" oninput="changeBg(this.value)"></label>
         </div>
+        <div id="progress-text" style="font-family: monospace;">READY... 0%</div>
     </header>
 
-    <div class="main-layout" id="layout" style="display:none;">
-        <div class="practice-section">
-            <div class="practice-window" id="window">
-                <div id="scrolling-content">
-                    <div id="text-display"></div>
-                </div>
-                <textarea id="invisible-input" spellcheck="false" autocomplete="off" autofocus></textarea>
+    <div id="combo-pop">0</div>
+
+    <div class="game-container" id="layout" style="display:none;">
+        <div class="practice-window">
+            <div id="scrolling-content">
+                <div id="text-display"></div>
             </div>
+            <textarea id="invisible-input" spellcheck="false" autocomplete="off"></textarea>
         </div>
 
-        <div class="info-section">
-            <div id="vocab-hint" class="info-card">
-                <div class="card-label">Vocabulary Hint</div>
-                <div id="hint-content" style="font-size:18px;">選擇歌曲開始練習</div>
+        <div class="sidebar">
+            <div class="glass-card">
+                <div style="color:var(--primary); font-size:12px; margin-bottom:5px;">VOCABULARY</div>
+                <div id="hint-content">---</div>
             </div>
-            <div class="info-card" style="border-left-color: #a29bfe;">
-                <div class="card-label">Translation</div>
-                <div id="trans-content" style="font-size:15px; line-height:1.6; color: #b2bec3;"></div>
+            <div class="glass-card">
+                <div style="color:#a29bfe; font-size:12px; margin-bottom:5px;">TRANSLATION</div>
+                <div id="trans-content" style="font-size:14px; opacity:0.8;"></div>
             </div>
         </div>
     </div>
 
     <script>
         const songLibrary = {
-            "song1": {
-                "lyrics": "我聽見雨落在青草地\n我聽見遠方下課鐘聲響起\n原來你是我最想留住的幸運",
-                "translation": "I hear the rain falling on the grass, I hear the school bell ringing in the distance...",
-                "vocab": [{ "trigger": "幸運", "kk": "ㄒㄧㄥˋ ㄩㄣˋ", "note": "Lucky" }]
-            },
             "song2": {
                 "lyrics": "I am not a stranger to the dark\nHide away they say\nCause we dont want your broken parts\nIve learned to be ashamed of all my scars\nRun away they say\nNo onell love you as you are\nBut I wont let them break me down to dust\nI know that theres a place for us\nFor we are glorious",
-                "translation": "我不畏懼黑暗。他們說：躲起來吧，我們不需要你那破碎的部分。我曾學會為我身上的疤痕感到羞恥...",
-                "vocab": [
-                    { "trigger": "stranger", "kk": "/ˈstreɪndʒər/", "note": "陌生人" },
-                    { "trigger": "ashamed", "kk": "/əˈʃeɪmd/", "note": "感到羞愧的" },
-                    { "trigger": "glorious", "kk": "/ˈɡlɔːriəs/", "note": "輝煌燦爛的" }
-                ]
+                "translation": "我不畏懼黑暗。他們說躲起來吧，我們不需要你那破碎的部分。我曾學會為疤痕感到羞恥...",
+                "vocab": [{ "trigger": "stranger", "kk": "/ˈstreɪndʒər/", "note": "陌生人" }, { "trigger": "glorious", "kk": "/ˈɡlɔːriəs/", "note": "輝煌燦爛" }]
             }
         };
 
-        let currentData = null;
-        let combo = 0;
-        const display = document.getElementById('text-display');
-        const input = document.getElementById('invisible-input');
-        const scrollContent = document.getElementById('scrolling-content');
+        let currentData = null, combo = 0, particles = [];
+        const canvas = document.getElementById('sparks');
+        const ctx = canvas.getContext('2d');
+
+        // 初始化背景與畫布
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+
+        function changeBg(color) { document.body.style.backgroundColor = color; }
 
         function initSong() {
             const val = document.getElementById('song-selector').value;
             currentData = songLibrary[val];
             if (!currentData) return;
-
-            document.getElementById('layout').style.display = 'flex';
+            document.getElementById('layout').style.display = 'grid';
             document.getElementById('trans-content').innerText = currentData.translation;
-            input.value = "";
+            document.getElementById('invisible-input').value = "";
             render(0);
-            input.focus();
+            document.getElementById('invisible-input').focus();
         }
 
-        input.addEventListener('input', () => {
-            const val = input.value;
+        document.getElementById('invisible-input').addEventListener('input', (e) => {
+            const val = e.target.value;
             const target = currentData.lyrics;
-            const lastIdx = val.length - 1;
+            const idx = val.length - 1;
 
-            if (val[lastIdx] === target[lastIdx]) {
+            if (val[idx] === target[idx]) {
                 combo++;
-                spawnVisualEffect(); // 觸發可愛效果
-                if (combo % 10 === 0) triggerConfetti(); // 每10次噴紙屑
+                createParticles(); // 產生火花
+                showCombo();
+                if (combo % 15 === 0) confetti({ particleCount: 50, spread: 60 });
             } else {
                 combo = 0;
+                hideCombo();
             }
-
             render(val.length);
             updateUI(val);
-            checkVocab(val);
         });
 
         function render(inputLen) {
             const target = currentData.lyrics;
-            const userIn = input.value;
+            const userIn = document.getElementById('invisible-input').value;
             let html = "";
-
             for (let i = 0; i < target.length; i++) {
                 if (i < inputLen) {
-                    const isCorrect = userIn[i] === target[i];
-                    html += `<span class="${isCorrect ? 'char-correct' : 'char-wrong'}" id="char-${i}">${target[i]}</span>`;
+                    html += `<span class="${userIn[i] === target[i] ? 'char-correct' : 'char-wrong'}" id="char-${i}">${target[i]}</span>`;
                 } else if (i === inputLen) {
                     html += `<span id="char-${i}">${target[i]}</span><span class="cursor"></span>`;
                 } else {
                     html += `<span id="char-${i}">${target[i]}</span>`;
                 }
             }
-            display.innerHTML = html;
-
-            const currentChar = document.getElementById(`char-${inputLen}`);
-            if (currentChar) {
-                const offset = currentChar.offsetTop;
-                scrollContent.style.transform = `translateY(-${offset - 50}px)`;
-            }
+            document.getElementById('text-display').innerHTML = html;
+            const cur = document.getElementById(`char-${inputLen}`);
+            if (cur) document.getElementById('scrolling-content').style.transform = `translateY(-${cur.offsetTop - 100}px)`;
         }
+
+        function showCombo() {
+            const el = document.getElementById('combo-pop');
+            el.innerText = combo + " COMBO";
+            el.classList.remove('pop-animation');
+            void el.offsetWidth; // 觸發重繪
+            el.classList.add('pop-animation');
+        }
+
+        function hideCombo() { document.getElementById('combo-pop').style.opacity = 0; }
 
         function updateUI(userInput) {
-            const progress = (userInput.length / currentData.lyrics.length) * 100;
-            document.getElementById('progress-bar').style.width = progress + "%";
-            document.getElementById('accuracy-display').innerText = `進度: ${Math.floor(progress)}%`;
-            document.getElementById('combo-count').innerText = combo;
+            const p = Math.floor((userInput.length / currentData.lyrics.length) * 100);
+            document.getElementById('progress-text').innerText = `PROGRESS: ${p}%`;
         }
 
-        function spawnVisualEffect() {
-            const star = document.createElement('div');
-            star.className = 'star';
-            star.innerText = ['⭐', '✨', '💖', '🎈'][Math.floor(Math.random()*4)];
-            star.style.left = (Math.random() * 80 + 10) + "%";
-            star.style.bottom = "20%";
-            document.getElementById('window').appendChild(star);
-            setTimeout(() => star.remove(), 1500);
-        }
-
-        function triggerConfetti() {
-            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-        }
-
-        function checkVocab(userInput) {
-            const lastWord = userInput.split(/[\s\n]+/).pop().toLowerCase();
-            const v = currentData.vocab.find(x => x.trigger === lastWord);
-            if (v) {
-                document.getElementById('hint-content').innerHTML = `<b style="color:var(--primary)">${v.trigger}</b> <small style="color:var(--accent)">${v.kk}</small><br><span style="font-size:14px; color:#b2bec3">${v.note}</span>`;
+        // --- 火花粒子邏輯 ---
+        function createParticles() {
+            for (let i = 0; i < 8; i++) {
+                particles.push({
+                    x: window.innerWidth / 2 + (Math.random() - 0.5) * 400,
+                    y: window.innerHeight / 2,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    size: Math.random() * 5 + 2,
+                    color: `hsl(${Math.random() * 360}, 100%, 70%)`,
+                    life: 1.0
+                });
             }
         }
 
-        function focusInput() {
-            if(document.getElementById('layout').style.display === 'flex') input.focus();
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+                if (p.life <= 0) particles.splice(i, 1);
+            });
+            requestAnimationFrame(animate);
         }
+        animate();
     </script>
 </body>
 </html>

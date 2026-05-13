@@ -3,41 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SingSangSung - Emoji Power</title>
+    <title>SingSangSung - Pro Edition</title>
     <style>
         :root { --primary: #74b9ff; --accent: #ff7675; --bg: #2d3436; --card: #353b48; --text: #dfe6e9; }
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; transition: background-color 0.3s; }
         
-        /* 頂部工具列 */
-        header { background: rgba(0,0,0,0.5); padding: 10px 25px; display: flex; justify-content: space-between; align-items: center; z-index: 100; border-bottom: 1px solid #444; }
-        .controls { display: flex; gap: 20px; align-items: center; }
+        header { background: rgba(0,0,0,0.6); padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .controls { display: flex; gap: 15px; align-items: center; }
         
-        /* 遊戲主容器 */
-        .main-game { display: grid; grid-template-columns: 1fr 300px; gap: 20px; padding: 20px; flex: 1; height: calc(100vh - 60px); }
+        .main-game { display: grid; grid-template-columns: 1fr 320px; gap: 25px; padding: 25px; flex: 1; height: calc(100vh - 70px); max-width: 1200px; margin: 0 auto; width: 100%; }
         
-        /* 練習視窗 */
-        .practice-window { position: relative; background: #1e2124; border-radius: 15px; border: 2px solid #4b5563; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        #scroll-engine { position: absolute; width: 100%; padding: 200px 50px; transition: transform 0.25s ease-out; font-size: 32px; line-height: 2; letter-spacing: 2px; }
-        #text-target { white-space: pre-wrap; color: #555; position: relative; }
+        /* 練習視窗優化 */
+        .practice-window { position: relative; background: #1a1c1e; border-radius: 20px; border: 2px solid #444; overflow: hidden; box-shadow: inset 0 0 30px rgba(0,0,0,0.7); }
         
-        /* 字體顏色 */
-        .char-ok { color: #fff; text-shadow: 0 0 8px var(--primary); }
-        .char-no { color: var(--accent); background: rgba(255,118,117,0.2); border-radius: 4px; }
-        .cursor { border-left: 3px solid var(--primary); animation: blink 0.8s infinite; display: inline-block; height: 1em; vertical-align: middle; }
+        #scroll-engine { 
+            position: absolute; width: 100%; padding: 0 50px; 
+            top: 50%; /* 初始位置在中央 */
+            transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1); 
+            font-size: 34px; line-height: 2.2; letter-spacing: 2px;
+        }
+        
+        #text-target { white-space: pre-wrap; color: #444; position: relative; }
+        .char-ok { color: #fff; text-shadow: 0 0 12px var(--primary); }
+        .char-no { color: var(--accent); background: rgba(255,118,117,0.2); border-radius: 6px; }
+        .cursor { border-left: 3px solid var(--primary); animation: blink 0.8s infinite; display: inline-block; height: 1.1em; vertical-align: middle; margin-left: 2px; }
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* 側邊資訊 */
-        .sidebar { display: flex; flex-direction: column; gap: 15px; }
-        .card { background: var(--card); padding: 20px; border-radius: 12px; border-left: 4px solid var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .sidebar { display: flex; flex-direction: column; gap: 20px; }
+        .card { background: var(--card); padding: 25px; border-radius: 18px; border-left: 5px solid var(--primary); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
 
         #invisible-input { position: fixed; top: -100px; opacity: 0; }
 
-        /* Emoji 噴發動畫 */
-        .emoji-particle { position: absolute; pointer-events: none; font-size: 24px; z-index: 999; animation: emoji-fly 1s ease-out forwards; }
+        /* Emoji 噴發效果 */
+        .emoji-particle { position: absolute; pointer-events: none; font-size: 30px; z-index: 1000; animation: emoji-fly 0.8s ease-out forwards; }
         @keyframes emoji-fly {
-            0% { transform: translate(0, 0) scale(1); opacity: 1; }
-            100% { transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(2); opacity: 0; }
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+            100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--dr)) scale(1.5); opacity: 0; }
         }
     </style>
 </head>
@@ -45,14 +47,14 @@
 
     <header>
         <div class="controls">
-            <b style="color:var(--primary)">SingSangSung</b>
-            <select id="song-select" onchange="loadSong()" style="background:#444; color:#fff; border:none; padding:5px 10px; border-radius:4px;">
-                <option value="">-- 選擇曲目 --</option>
-                <option value="song2">This Is Me (The Greatest Showman)</option>
+            <span style="font-size: 20px; font-weight: 900; color: var(--primary); letter-spacing: 1px;">SingSangSung</span>
+            <select id="song-select" onchange="loadSong()" style="background:#333; color:#fff; border:1px solid #555; padding:6px 12px; border-radius:8px; cursor:pointer;">
+                <option value="">-- 選擇練習曲目 --</option>
+                <option value="song2">This Is Me (Greatest Showman)</option>
             </select>
-            <label>背景：<input type="color" id="color-picker" value="#2d3436" oninput="document.body.style.backgroundColor = this.value"></label>
+            <input type="color" id="color-picker" value="#2d3436" oninput="document.body.style.backgroundColor = this.value" style="width:35px; height:35px; border:none; padding:0; background:none; cursor:pointer;">
         </div>
-        <div id="stat-display" style="font-family: monospace; font-weight: bold; color: var(--primary);">Combo: 0 | 0%</div>
+        <div id="stat-display" style="font-family: 'Courier New', monospace; font-size: 18px; font-weight: bold; color: var(--primary);">Combo: 0 | 0%</div>
     </header>
 
     <div class="main-game" id="game-view" style="display:none;">
@@ -65,12 +67,12 @@
 
         <div class="sidebar">
             <div class="card">
-                <div style="font-size:12px; color:var(--primary); margin-bottom:8px;">VOCABULARY</div>
-                <div id="vocab-hint">點擊選擇曲目開始</div>
+                <div style="font-size:13px; color:var(--primary); font-weight:bold; margin-bottom:10px; letter-spacing:1px;">VOCABULARY</div>
+                <div id="vocab-hint" style="font-size:18px;">Ready to Start?</div>
             </div>
             <div class="card" style="border-left-color:#a29bfe;">
-                <div style="font-size:12px; color:#a29bfe; margin-bottom:8px;">TRANSLATION</div>
-                <div id="trans-hint" style="font-size:14px; opacity:0.8;"></div>
+                <div style="font-size:13px; color:#a29bfe; font-weight:bold; margin-bottom:10px; letter-spacing:1px;">TRANSLATION</div>
+                <div id="trans-hint" style="font-size:15px; line-height:1.6; opacity:0.9;"></div>
             </div>
         </div>
     </div>
@@ -84,7 +86,7 @@
             }
         };
 
-        const emojis = ['🐱', '🐱‍🚀', '🌈', '✨', '🥧', '🔥', '💎', '⭐', '🎈', '🍀'];
+        const emojis = ['🐱', '🐱‍🚀', '🌈', '✨', '🥧', '🔥', '💎', '⭐', '🎈', '🍀', '🎯', '⚡'];
         let current = null, combo = 0;
 
         function loadSong() {
@@ -128,9 +130,12 @@
             }
             document.getElementById('text-target').innerHTML = html;
             
+            // 捲動對焦邏輯優化：鎖定在中央
             const curEl = document.getElementById(`c-${val.length}`);
             if (curEl) {
-                document.getElementById('scroll-engine').style.transform = `translateY(-${curEl.offsetTop - 100}px)`;
+                const scrollEngine = document.getElementById('scroll-engine');
+                // 計算偏移量，讓當前字元位在容器的 0 點 (即 top:50% 的位置)
+                scrollEngine.style.transform = `translateY(-${curEl.offsetTop}px)`;
             }
         }
 
@@ -145,22 +150,30 @@
             particle.className = 'emoji-particle';
             particle.innerText = emojis[Math.floor(Math.random() * emojis.length)];
             
-            // 定位在游標位置 (相對於練習視窗)
+            // 精準定位在游標處
             particle.style.left = (rect.left - winRect.left) + "px";
             particle.style.top = (rect.top - winRect.top) + "px";
             
-            // 隨機噴發方向
-            particle.style.setProperty('--x', (Math.random() - 0.5) * 300 + "px");
-            particle.style.setProperty('--y', (Math.random() * -300 - 50) + "px");
-            particle.style.setProperty('--r', (Math.random() * 360) + "deg");
+            // 隨機噴發參數
+            particle.style.setProperty('--dx', (Math.random() - 0.5) * 250 + "px");
+            particle.style.setProperty('--dy', (Math.random() * -200 - 100) + "px");
+            particle.style.setProperty('--dr', (Math.random() * 360) + "deg");
             
             document.getElementById('window-root').appendChild(particle);
-            setTimeout(() => particle.remove(), 1000);
+            setTimeout(() => particle.remove(), 800);
         }
 
         function updateStats(val) {
             const p = Math.floor((val.length / current.lyrics.length) * 100);
             document.getElementById('stat-display').innerText = `Combo: ${combo} | ${p}%`;
+            
+            // 檢查單字提示
+            const words = val.split(/[\s\n]+/);
+            const lastWord = words[words.length - 1].toLowerCase();
+            const v = current.vocab.find(x => x.t === lastWord);
+            if (v) {
+                document.getElementById('vocab-hint').innerHTML = `<b style="color:var(--primary)">${v.t}</b> <small>${v.k}</small><br><span style="font-size:14px; opacity:0.8">${v.n}</span>`;
+            }
         }
     </script>
 </body>

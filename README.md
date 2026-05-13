@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SingSangSung - Pro Edition</title>
+    <title>SingSangSung - Sync Edition</title>
     <style>
         :root { --primary: #74b9ff; --accent: #ff7675; --bg: #2d3436; --card: #353b48; --text: #dfe6e9; }
         * { box-sizing: border-box; }
@@ -14,12 +14,11 @@
         
         .main-game { display: grid; grid-template-columns: 1fr 320px; gap: 25px; padding: 25px; flex: 1; height: calc(100vh - 70px); max-width: 1200px; margin: 0 auto; width: 100%; }
         
-        /* 練習視窗優化 */
         .practice-window { position: relative; background: #1a1c1e; border-radius: 20px; border: 2px solid #444; overflow: hidden; box-shadow: inset 0 0 30px rgba(0,0,0,0.7); }
         
         #scroll-engine { 
             position: absolute; width: 100%; padding: 0 50px; 
-            top: 50%; /* 初始位置在中央 */
+            top: 50%; 
             transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1); 
             font-size: 34px; line-height: 2.2; letter-spacing: 2px;
         }
@@ -31,11 +30,10 @@
         @keyframes blink { 50% { opacity: 0; } }
 
         .sidebar { display: flex; flex-direction: column; gap: 20px; }
-        .card { background: var(--card); padding: 25px; border-radius: 18px; border-left: 5px solid var(--primary); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+        .card { background: var(--card); padding: 25px; border-radius: 18px; border-left: 5px solid var(--primary); box-shadow: 0 8px 20px rgba(0,0,0,0.3); transition: all 0.3s ease; }
 
         #invisible-input { position: fixed; top: -100px; opacity: 0; }
 
-        /* Emoji 噴發效果 */
         .emoji-particle { position: absolute; pointer-events: none; font-size: 30px; z-index: 1000; animation: emoji-fly 0.8s ease-out forwards; }
         @keyframes emoji-fly {
             0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
@@ -66,11 +64,11 @@
         </div>
 
         <div class="sidebar">
-            <div class="card">
+            <div class="card" id="card-vocab">
                 <div style="font-size:13px; color:var(--primary); font-weight:bold; margin-bottom:10px; letter-spacing:1px;">VOCABULARY</div>
                 <div id="vocab-hint" style="font-size:18px;">Ready to Start?</div>
             </div>
-            <div class="card" style="border-left-color:#a29bfe;">
+            <div class="card" id="card-trans" style="border-left-color:#a29bfe;">
                 <div style="font-size:13px; color:#a29bfe; font-weight:bold; margin-bottom:10px; letter-spacing:1px;">TRANSLATION</div>
                 <div id="trans-hint" style="font-size:15px; line-height:1.6; opacity:0.9;"></div>
             </div>
@@ -80,21 +78,46 @@
     <script>
         const songData = {
             "song2": {
-                "lyrics": "I am not a stranger to the dark\nHide away they say\nCause we dont want your broken parts\nIve learned to be ashamed of all my scars\nRun away they say\nNo onell love you as you are\nBut I wont let them break me down to dust\nI know that theres a place for us\nFor we are glorious",
-                "translation": "我不畏懼黑暗。他們說躲起來吧，我們不需要你那破碎的部分。我曾學會為疤痕感到羞恥...",
-                "vocab": [{ "t": "stranger", "k": "/ˈstreɪndʒər/", "n": "陌生人" }, { "t": "glorious", "k": "/ˈɡlɔːriəs/", "n": "輝煌燦爛" }]
+                "lyrics": [
+                    "I am not a stranger to the dark",
+                    "Hide away they say",
+                    "Cause we dont want your broken parts",
+                    "Ive learned to be ashamed of all my scars",
+                    "Run away they say",
+                    "No onell love you as you are",
+                    "But I wont let them break me down to dust",
+                    "I know that theres a place for us",
+                    "For we are glorious"
+                ],
+                "translations": [
+                    "我不畏懼黑暗。",
+                    "他們說：躲起來吧。",
+                    "因為我們不需要你那破碎的部分。",
+                    "我曾學會為我身上的疤痕感到羞恥。",
+                    "他們說：逃跑吧。",
+                    "沒人會愛你原本的樣子。",
+                    "但我不會讓他們把我擊潰成灰燼。",
+                    "我知道有個地方是屬於我們的。",
+                    "因為我們是輝煌燦爛的。"
+                ],
+                "vocab": {
+                    "stranger": { "k": "/ˈstreɪndʒər/", "n": "陌生人" },
+                    "ashamed": { "k": "/əˈ壓h單md/", "n": "感到羞愧的" },
+                    "glorious": { "k": "/ˈɡlɔːriəs/", "n": "輝煌燦爛的" }
+                }
             }
         };
 
-        const emojis = ['🐱', '🐱‍🚀', '🌈', '✨', '🥧', '🔥', '💎', '⭐', '🎈', '🍀', '🎯', '⚡'];
-        let current = null, combo = 0;
+        const emojis = ['🐱', '🌈', '✨', '🔥', '💎', '⭐', '🎈', '🍀', '🎯', '⚡'];
+        let current = null, combo = 0, fullLyricsString = "";
 
         function loadSong() {
             const key = document.getElementById('song-select').value;
             current = songData[key];
             if (!current) return;
+            
+            fullLyricsString = current.lyrics.join('\n');
             document.getElementById('game-view').style.display = 'grid';
-            document.getElementById('trans-hint').innerText = current.translation;
             document.getElementById('invisible-input').value = "";
             render();
             document.getElementById('invisible-input').focus();
@@ -102,10 +125,9 @@
 
         document.getElementById('invisible-input').addEventListener('input', (e) => {
             const val = e.target.value;
-            const target = current.lyrics;
             const i = val.length - 1;
 
-            if (val[i] === target[i]) {
+            if (val[i] === fullLyricsString[i]) {
                 combo++;
                 spawnEmoji();
             } else {
@@ -117,7 +139,7 @@
 
         function render() {
             const val = document.getElementById('invisible-input').value;
-            const target = current.lyrics;
+            const target = fullLyricsString;
             let html = "";
             for (let i = 0; i < target.length; i++) {
                 if (i < val.length) {
@@ -130,49 +152,56 @@
             }
             document.getElementById('text-target').innerHTML = html;
             
-            // 捲動對焦邏輯優化：鎖定在中央
             const curEl = document.getElementById(`c-${val.length}`);
             if (curEl) {
-                const scrollEngine = document.getElementById('scroll-engine');
-                // 計算偏移量，讓當前字元位在容器的 0 點 (即 top:50% 的位置)
-                scrollEngine.style.transform = `translateY(-${curEl.offsetTop}px)`;
+                document.getElementById('scroll-engine').style.transform = `translateY(-${curEl.offsetTop}px)`;
             }
         }
 
         function spawnEmoji() {
             const cursor = document.getElementById('current-cursor');
             if (!cursor) return;
-            
             const rect = cursor.getBoundingClientRect();
             const winRect = document.getElementById('window-root').getBoundingClientRect();
-            
             const particle = document.createElement('div');
             particle.className = 'emoji-particle';
             particle.innerText = emojis[Math.floor(Math.random() * emojis.length)];
-            
-            // 精準定位在游標處
             particle.style.left = (rect.left - winRect.left) + "px";
             particle.style.top = (rect.top - winRect.top) + "px";
-            
-            // 隨機噴發參數
             particle.style.setProperty('--dx', (Math.random() - 0.5) * 250 + "px");
             particle.style.setProperty('--dy', (Math.random() * -200 - 100) + "px");
             particle.style.setProperty('--dr', (Math.random() * 360) + "deg");
-            
             document.getElementById('window-root').appendChild(particle);
             setTimeout(() => particle.remove(), 800);
         }
 
         function updateStats(val) {
-            const p = Math.floor((val.length / current.lyrics.length) * 100);
+            const p = Math.floor((val.length / fullLyricsString.length) * 100);
             document.getElementById('stat-display').innerText = `Combo: ${combo} | ${p}%`;
             
-            // 檢查單字提示
+            // --- 同步邏輯：判斷目前在哪一行 ---
+            const linesInput = val.split('\n');
+            const currentLineIdx = linesInput.length - 1;
+            
+            // 更新翻譯欄位
+            if (current.translations[currentLineIdx]) {
+                const transHint = document.getElementById('trans-hint');
+                if (transHint.innerText !== current.translations[currentLineIdx]) {
+                    transHint.innerText = current.translations[currentLineIdx];
+                    // 增加一個微小的閃爍效果提醒更新
+                    document.getElementById('card-trans').style.transform = 'scale(1.02)';
+                    setTimeout(()=> document.getElementById('card-trans').style.transform = 'scale(1)', 200);
+                }
+            }
+
+            // 更新單字提示 (檢查目前打的最後一個單字)
             const words = val.split(/[\s\n]+/);
-            const lastWord = words[words.length - 1].toLowerCase();
-            const v = current.vocab.find(x => x.t === lastWord);
+            const lastWord = words[words.length - 1].toLowerCase().replace(/[^a-z]/g, '');
+            const v = current.vocab[lastWord];
             if (v) {
-                document.getElementById('vocab-hint').innerHTML = `<b style="color:var(--primary)">${v.t}</b> <small>${v.k}</small><br><span style="font-size:14px; opacity:0.8">${v.n}</span>`;
+                document.getElementById('vocab-hint').innerHTML = `<b style="color:var(--primary)">${lastWord}</b> <small>${v.k}</small><br><span style="font-size:14px; opacity:0.8">${v.n}</span>`;
+                document.getElementById('card-vocab').style.transform = 'scale(1.02)';
+                setTimeout(()=> document.getElementById('card-vocab').style.transform = 'scale(1)', 200);
             }
         }
     </script>

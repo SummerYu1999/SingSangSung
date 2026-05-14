@@ -30,7 +30,7 @@
         @keyframes blink { 50% { opacity: 0; } }
 
         .sidebar { display: flex; flex-direction: column; gap: 20px; }
-        .card { background: var(--card); padding: 25px; border-radius: 18px; border-left: 5px solid var(--primary); box-shadow: 0 8px 20px rgba(0,0,0,0.3); transition: all 0.3s ease; }
+        .card { background: var(--card); padding: 25px; border-radius: 18px; border-left: 5px solid var(--primary); box-shadow: 0 8px 20px rgba(0,0,0,0.3); transition: all 0.3s ease; display: flex; flex-direction: column; justify-content: center; min-height: 120px; }
 
         #invisible-input { position: fixed; top: -100px; opacity: 0; }
 
@@ -65,12 +65,10 @@
 
         <div class="sidebar">
             <div class="card" id="card-vocab">
-                <div style="font-size:13px; color:var(--primary); font-weight:bold; margin-bottom:10px; letter-spacing:1px;">VOCABULARY</div>
-                <div id="vocab-hint" style="font-size:18px;">Ready to Start?</div>
+                <div id="vocab-hint" style="font-size:18px;">準備開始練習</div>
             </div>
             <div class="card" id="card-trans" style="border-left-color:#a29bfe;">
-                <div style="font-size:13px; color:#a29bfe; font-weight:bold; margin-bottom:10px; letter-spacing:1px;">TRANSLATION</div>
-                <div id="trans-hint" style="font-size:15px; line-height:1.6; opacity:0.9;"></div>
+                <div id="trans-hint" style="font-size:17px; line-height:1.6; font-weight: 500;"></div>
             </div>
         </div>
     </div>
@@ -102,7 +100,7 @@
                 ],
                 "vocab": {
                     "stranger": { "k": "/ˈstreɪndʒər/", "n": "陌生人" },
-                    "ashamed": { "k": "/əˈ壓h單md/", "n": "感到羞愧的" },
+                    "ashamed": { "k": "/əˈʃeɪmd/", "n": "感到羞愧的" },
                     "glorious": { "k": "/ˈɡlɔːriəs/", "n": "輝煌燦爛的" }
                 }
             }
@@ -179,29 +177,24 @@
             const p = Math.floor((val.length / fullLyricsString.length) * 100);
             document.getElementById('stat-display').innerText = `Combo: ${combo} | ${p}%`;
             
-            // --- 同步邏輯：判斷目前在哪一行 ---
+            // 判斷目前行數邏輯優化
             const linesInput = val.split('\n');
             const currentLineIdx = linesInput.length - 1;
             
-            // 更新翻譯欄位
+            // 更新翻譯
             if (current.translations[currentLineIdx]) {
                 const transHint = document.getElementById('trans-hint');
                 if (transHint.innerText !== current.translations[currentLineIdx]) {
                     transHint.innerText = current.translations[currentLineIdx];
-                    // 增加一個微小的閃爍效果提醒更新
-                    document.getElementById('card-trans').style.transform = 'scale(1.02)';
-                    setTimeout(()=> document.getElementById('card-trans').style.transform = 'scale(1)', 200);
                 }
             }
 
-            // 更新單字提示 (檢查目前打的最後一個單字)
+            // 更新單字提示 (檢查目前打的最後一個完整的單字)
             const words = val.split(/[\s\n]+/);
             const lastWord = words[words.length - 1].toLowerCase().replace(/[^a-z]/g, '');
             const v = current.vocab[lastWord];
             if (v) {
-                document.getElementById('vocab-hint').innerHTML = `<b style="color:var(--primary)">${lastWord}</b> <small>${v.k}</small><br><span style="font-size:14px; opacity:0.8">${v.n}</span>`;
-                document.getElementById('card-vocab').style.transform = 'scale(1.02)';
-                setTimeout(()=> document.getElementById('card-vocab').style.transform = 'scale(1)', 200);
+                document.getElementById('vocab-hint').innerHTML = `<b style="color:var(--primary)">${lastWord}</b> <small style="font-size:14px; color:#aaa">${v.k}</small><br><span style="margin-top:5px; font-size:16px;">${v.n}</span>`;
             }
         }
     </script>

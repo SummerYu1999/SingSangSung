@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SingSangSung - Sync Edition</title>
+    <title>SingSangSung - Precise Sync</title>
     <style>
         :root { --primary: #74b9ff; --accent: #ff7675; --bg: #2d3436; --card: #353b48; --text: #dfe6e9; }
         * { box-sizing: border-box; }
@@ -100,21 +100,32 @@
                 ],
                 "vocab": {
                     "stranger": { "k": "/ˈstreɪndʒər/", "n": "陌生人" },
-                    "ashamed": { "k": "/əˈʃeɪmd/", "n": "感到羞愧的" },
+                    "ashamed": { "k": "/əˈ壓h單md/", "n": "感到羞愧的" },
                     "glorious": { "k": "/ˈɡlɔːriəs/", "n": "輝煌燦爛的" }
                 }
             }
         };
 
         const emojis = ['🐱', '🌈', '✨', '🔥', '💎', '⭐', '🎈', '🍀', '🎯', '⚡'];
-        let current = null, combo = 0, fullLyricsString = "";
+        let current = null, combo = 0, fullLyricsString = "", lineThresholds = [];
 
         function loadSong() {
             const key = document.getElementById('song-select').value;
             current = songData[key];
             if (!current) return;
             
-            fullLyricsString = current.lyrics.join('\n');
+            // 建立完整的歌詞字串與每一行的字元區間
+            fullLyricsString = "";
+            lineThresholds = [];
+            let currentCount = 0;
+            
+            current.lyrics.forEach((line, index) => {
+                fullLyricsString += line + "\n";
+                // 記錄每一行結束時的字元位置
+                currentCount += line.length + 1; // +1 是為了換行符
+                lineThresholds.push(currentCount);
+            });
+
             document.getElementById('game-view').style.display = 'grid';
             document.getElementById('invisible-input').value = "";
             render();
@@ -177,19 +188,26 @@
             const p = Math.floor((val.length / fullLyricsString.length) * 100);
             document.getElementById('stat-display').innerText = `Combo: ${combo} | ${p}%`;
             
-            // 判斷目前行數邏輯優化
-            const linesInput = val.split('\n');
-            const currentLineIdx = linesInput.length - 1;
+            // --- 實時翻譯偵測：根據目前打到的字數位置判定行數 ---
+            let currentLineIdx = 0;
+            for (let i = 0; i < lineThresholds.length; i++) {
+                if (val.length < lineThresholds[i]) {
+                    currentLineIdx = i;
+                    break;
+                }
+                // 如果已經打過最後一行，則鎖定在最後一行
+                currentLineIdx = lineThresholds.length - 1;
+            }
             
-            // 更新翻譯
+            // 更新翻譯內容
+            const transHint = document.getElementById('trans-hint');
             if (current.translations[currentLineIdx]) {
-                const transHint = document.getElementById('trans-hint');
                 if (transHint.innerText !== current.translations[currentLineIdx]) {
                     transHint.innerText = current.translations[currentLineIdx];
                 }
             }
 
-            // 更新單字提示 (檢查目前打的最後一個完整的單字)
+            // 更新單字提示
             const words = val.split(/[\s\n]+/);
             const lastWord = words[words.length - 1].toLowerCase().replace(/[^a-z]/g, '');
             const v = current.vocab[lastWord];

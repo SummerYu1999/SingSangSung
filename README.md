@@ -71,7 +71,7 @@
             </div>
         </div>
     </div>
-
+<script>
     const songData = {
     "song2": {
         "lyrics": [

@@ -12,16 +12,36 @@
         header { background: rgba(0,0,0,0.6); padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
         .controls { display: flex; gap: 15px; align-items: center; }
         
-        .main-game { display: grid; grid-template-columns: 1fr 320px; gap: 25px; padding: 25px; flex: 1; height: calc(100vh - 70px); max-width: 1200px; margin: 0 auto; width: 100%; }
-        
-        .practice-window { position: relative; background: #1a1c1e; border-radius: 20px; border: 2px solid #444; overflow: hidden; box-shadow: inset 0 0 30px rgba(0,0,0,0.7); }
-        
-        #scroll-engine { 
-            position: absolute; width: 100%; padding: 0 50px; 
-            top: 50%; 
-            transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1); 
-            font-size: 34px; line-height: 2.2; letter-spacing: 2px;
-        }
+        /* 修改後的佈局比例 */
+.main-game { 
+    display: grid; 
+    grid-template-columns: 1fr 250px; /* 將側邊欄縮小至 250px */
+    gap: 20px; 
+    padding: 20px; 
+    flex: 1; 
+    height: calc(100vh - 70px); 
+    max-width: 1400px; /* 擴大整體容器上限 */
+    margin: 0 auto; 
+    width: 100%; 
+}
+
+.sidebar { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 15px; 
+    /* 移除垂直填滿，讓卡片靠上對齊 */
+    justify-content: flex-start; 
+}
+
+.card { 
+    background: var(--card); 
+    padding: 18px; /* 稍微縮減內距 */
+    border-radius: 14px; 
+    border-left: 5px solid var(--primary); 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+    transition: all 0.4s ease;
+    min-height: auto; /* 移除最小高度限制 */
+}
         
         #text-target { white-space: pre-wrap; color: #555; position: relative; }
         .char-ok { color: #fff; text-shadow: 0 0 12px var(--primary); }

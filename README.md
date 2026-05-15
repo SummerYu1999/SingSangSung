@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -11,7 +12,6 @@
         header { background: rgba(0,0,0,0.6); padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
         .controls { display: flex; gap: 15px; align-items: center; }
         
-        /* 側邊欄縮小比例優化 */
         .main-game { 
             display: grid; 
             grid-template-columns: 1fr 250px; 
@@ -24,48 +24,35 @@
             width: 100%; 
         }
 
-        .sidebar { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-            justify-content: flex-start; 
-        }
-
-        .card { 
-            background: var(--card); 
-            padding: 18px; 
-            border-radius: 14px; 
-            border-left: 5px solid var(--primary); 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            min-height: auto;
-        }
-
+        .sidebar { display: flex; flex-direction: column; gap: 15px; justify-content: flex-start; }
+        .card { background: var(--card); padding: 18px; border-radius: 14px; border-left: 5px solid var(--primary); box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .card.hidden { opacity: 0; transform: translateX(20px); }
 
-        .practice-window { position: relative; overflow: hidden; background: rgba(0,0,0,0.2); border-radius: 20px; padding: 40px; }
+        .practice-window { position: relative; overflow: hidden; background: rgba(0,0,0,0.2); border-radius: 20px; padding: 40px; height: 100%; }
         #scroll-engine { transition: transform 0.3s ease; }
         #text-target { white-space: pre-wrap; color: #555; position: relative; font-size: 28px; line-height: 1.6; }
         
         .char-ok { color: #fff; text-shadow: 0 0 12px var(--primary); }
         .char-no { color: var(--accent); background: rgba(255,118,117,0.2); }
-        
         .hard-word { border-bottom: 2px dashed var(--highlight); color: #888; }
         .hard-word.active { color: var(--highlight); text-shadow: 0 0 8px var(--highlight); }
 
         .cursor { border-left: 3px solid var(--primary); animation: blink 0.8s infinite; display: inline-block; height: 1.1em; vertical-align: middle; }
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* 特效動畫定義 */
+        /* 特效粒子 */
         .emoji-particle {
             position: absolute;
             pointer-events: none;
-            animation: moveOut 1s forwards ease-out;
             z-index: 1000;
             white-space: nowrap;
+            font-size: 24px;
+            animation: emoji-fly 1s forwards ease-out;
         }
-        @keyframes moveOut {
-            to { transform: translate(var(--dx), var(--dy)) rotate(var(--dr)); opacity: 0; }
+        @keyframes emoji-fly {
+            0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+            20% { opacity: 1; transform: translate(0, -10px) scale(1.2); }
+            100% { transform: translate(var(--dx), var(--dy)) scale(1.5) rotate(var(--dr)); opacity: 0; }
         }
 
         #invisible-input { position: fixed; top: -100px; opacity: 0; }
@@ -171,6 +158,12 @@
 
     let current = null, fullLyricsString = "", lineThresholds = [];
 
+    const emojiMap = {
+        "dark": ["🌙", "🌑"], "scars": ["🩹", "❤️‍🩹"], "flood": ["🌊", "💧"],
+        "sun": ["☀️", "🌻"], "warriors": ["⚔️", "🛡️"], "me": ["✨", "🌈"],
+        "brave": ["🦁", "💪"], "love": ["💖", "🥰"]
+    };
+
     function loadSong() {
         const key = document.getElementById('song-select').value;
         current = songData[key];
@@ -185,6 +178,7 @@
             lineThresholds.push(currentCount);
         });
 
+        document.getElementById('invisible-input').value = ""; // 重置輸入
         document.getElementById('game-view').style.display = 'grid';
         render();
         document.getElementById('invisible-input').focus();
@@ -199,29 +193,44 @@
         const lastWord = val.substring(lastSpaceIdx + 1).toLowerCase();
         let lineIdx = lineThresholds.findIndex(t => val.length < t);
         
+        // 1. 特殊 backingVocals 觸發
         const bv = current.backingVocals.find(b => b.trigger === lastWord && b.index === lineIdx);
-        if (bv) spawnOh(bv.text);
+        if (bv) {
+            spawnEffect(bv.text, true);
+        } else if (e.data) {
+            // 2. 一般打字觸發隨機 Emoji
+            const list = emojiMap[lastWord] || ["✨", "🔥", "💫", "⭐", "🌟"];
+            const randomEmoji = list[Math.floor(Math.random() * list.length)];
+            spawnEffect(randomEmoji);
+        }
     });
 
-    function spawnOh(text) {
+    function spawnEffect(text, isOh = false) {
         const cursor = document.querySelector('.cursor');
         if (!cursor) return;
         const rect = cursor.getBoundingClientRect();
-        const winRect = document.getElementById('window-root').getBoundingClientRect();
+        const winRoot = document.getElementById('window-root');
+        const winRect = winRoot.getBoundingClientRect();
         
-        const oh = document.createElement('div');
-        oh.className = 'emoji-particle';
-        oh.innerText = text;
-        oh.style.color = "var(--primary)";
-        oh.style.fontSize = "24px";
-        oh.style.fontWeight = "bold";
-        oh.style.left = (rect.left - winRect.left) + "px";
-        oh.style.top = (rect.top - winRect.top) + "px";
-        oh.style.setProperty('--dx', (Math.random() - 0.5) * 100 + "px");
-        oh.style.setProperty('--dy', "-150px");
-        oh.style.setProperty('--dr', (Math.random() * 20 - 10) + "deg");
-        document.getElementById('window-root').appendChild(oh);
-        setTimeout(() => oh.remove(), 1000);
+        const el = document.createElement('div');
+        el.className = 'emoji-particle';
+        el.innerText = text;
+        
+        if (isOh) {
+            el.style.color = "var(--primary)";
+            el.style.fontWeight = "bold";
+        }
+        
+        // 計算位置：需考量當前捲動高度，確保噴發在正確字符旁
+        el.style.left = (rect.left - winRect.left) + "px";
+        el.style.top = (rect.top - winRect.top) + "px";
+        
+        el.style.setProperty('--dx', (Math.random() - 0.5) * 150 + "px");
+        el.style.setProperty('--dy', (Math.random() * -150 - 50) + "px");
+        el.style.setProperty('--dr', (Math.random() * 60 - 30) + "deg");
+        
+        winRoot.appendChild(el);
+        setTimeout(() => el.remove(), 1000);
     }
 
     function render() {
@@ -244,35 +253,38 @@
             }
             if (i === val.length - 1) html += `<span class="cursor"></span>`;
         }
+        // 如果剛開始打字，也要顯示光標
+        if (val.length === 0) html = `<span class="cursor"></span>` + target;
+        
         document.getElementById('text-target').innerHTML = html;
         
         const curEl = document.querySelector('.cursor') || document.getElementById('text-target');
-        document.getElementById('scroll-engine').style.transform = `translateY(-${curEl.offsetTop}px)`;
+        // 捲動邏輯保持不變，但確保初始狀態為 0
+        const offset = val.length === 0 ? 0 : curEl.offsetTop;
+        document.getElementById('scroll-engine').style.transform = `translateY(-${offset}px)`;
     }
 
     function getPos(lineIdx, word) {
         let pos = 0;
         for(let i=0; i<lineIdx; i++) pos += (current.lyrics[i] ? current.lyrics[i].length + 1 : 0);
         const lineText = current.lyrics[lineIdx];
-        return pos + (lineText ? lineText.indexOf(word) : 0);
+        const wordIdx = lineText ? lineText.indexOf(word) : -1;
+        return wordIdx !== -1 ? pos + wordIdx : pos;
     }
 
     function updateStats() {
         const val = document.getElementById('invisible-input').value;
         const target = fullLyricsString;
         
-        // 更新進度與翻譯
         let lineIdx = lineThresholds.findIndex(t => val.length < t);
         if (lineIdx === -1) lineIdx = current.lyrics.length - 1;
-        document.getElementById('trans-hint').innerText = current.translations[lineIdx];
+        document.getElementById('trans-hint').innerText = current.translations[lineIdx] || "";
 
-        // 計算正確率 (以當前輸入長度為準)
         let correct = 0;
         for(let i=0; i<val.length; i++) if(val[i] === target[i]) correct++;
         const percent = val.length > 0 ? Math.floor((correct / val.length) * 100) : 0;
         document.getElementById('stat-display').innerText = `Combo: ${val.length} | ${percent}%`;
 
-        // 更新單字卡
         const vocabCard = document.getElementById('card-vocab');
         const targetVocab = current.vocab.find(v => {
             const start = getPos(v.index, v.word);

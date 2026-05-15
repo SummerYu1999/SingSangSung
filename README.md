@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -11,10 +12,9 @@
         header { background: rgba(0,0,0,0.6); padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
         .controls { display: flex; gap: 15px; align-items: center; }
         
-        /* 側邊欄縮小比例優化 */
         .main-game { 
             display: grid; 
-            grid-template-columns: 1fr 250px; 
+            grid-template-columns: 1fr 280px; 
             gap: 20px; 
             padding: 20px; 
             flex: 1; 
@@ -24,66 +24,41 @@
             width: 100%; 
         }
 
-        .sidebar { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-            justify-content: flex-start; 
-        }
-
-        .card { 
-            background: var(--card); 
-            padding: 18px; 
-            border-radius: 14px; 
-            border-left: 5px solid var(--primary); 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            min-height: auto;
-        }
-
+        .sidebar { display: flex; flex-direction: column; gap: 15px; }
+        .card { background: var(--card); padding: 18px; border-radius: 14px; border-left: 5px solid var(--primary); box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: all 0.4s ease; }
         .card.hidden { opacity: 0; transform: translateX(20px); }
 
-        .practice-window { position: relative; overflow: hidden; background: rgba(0,0,0,0.2); border-radius: 20px; padding: 40px; }
+        .practice-window { position: relative; overflow: hidden; background: rgba(0,0,0,0.4); border-radius: 20px; padding: 40px; height: 100%; }
         #scroll-engine { transition: transform 0.3s ease; }
-        #text-target { white-space: pre-wrap; color: #555; position: relative; font-size: 28px; line-height: 1.6; }
+        #text-target { white-space: pre-wrap; color: #555; position: relative; font-size: 32px; line-height: 1.8; font-weight: 600; }
         
         .char-ok { color: #fff; text-shadow: 0 0 12px var(--primary); }
         .char-no { color: var(--accent); background: rgba(255,118,117,0.2); }
-        
         .hard-word { border-bottom: 2px dashed var(--highlight); color: #888; }
         .hard-word.active { color: var(--highlight); text-shadow: 0 0 8px var(--highlight); }
 
-        .cursor { border-left: 3px solid var(--primary); animation: blink 0.8s infinite; display: inline-block; height: 1.1em; vertical-align: middle; }
+        .cursor { border-left: 3px solid var(--primary); animation: blink 0.8s infinite; display: inline-block; height: 1.1em; vertical-align: middle; margin-left: 2px; }
         @keyframes blink { 50% { opacity: 0; } }
 
-       /* 讓文字/Oh 噴發出來的完整特效 */
+        /* 隱藏輸入框 */
+        #invisible-input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+
+        /* 特效樣式 */
         .emoji-particle {
             position: absolute;
             pointer-events: none;
             z-index: 1000;
             white-space: nowrap;
             font-family: "Segoe UI Emoji", sans-serif;
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
-            color: var(--primary);
-            /* 使用更高動感的動畫曲線 */
             animation: emoji-fly 1s forwards cubic-bezier(0.12, 0, 0.39, 0);
         }
 
         @keyframes emoji-fly {
-            0% {
-                transform: translate(0, 0) scale(0.5) rotate(0deg);
-                opacity: 0;
-            }
-            20% {
-                opacity: 1;
-                transform: translate(0, -20px) scale(1.2);
-            }
-            100% {
-                /* 使用 JS 傳入的偏移變數 --dx, --dy, --dr */
-                transform: translate(var(--dx), var(--dy)) scale(1.5) rotate(var(--dr));
-                opacity: 0;
-            }
+            0% { transform: translate(0, 0) scale(0.5) rotate(0deg); opacity: 0; }
+            20% { opacity: 1; transform: translate(0, -20px) scale(1.2); }
+            100% { transform: translate(var(--dx), var(--dy)) scale(1.5) rotate(var(--dr)); opacity: 0; }
         }
     </style>
 </head>
@@ -206,38 +181,67 @@
         document.getElementById('invisible-input').focus();
     }
 
+    // 關鍵字 Emoji 對照表
+    const emojiMap = {
+        "dark": ["🌙", "🌑", "✨"],
+        "scars": ["🩹", "❤️‍🩹"],
+        "fire": ["🔥", "💥"],
+        "flood": ["🌊", "🌊","🌊"],
+        "sun": ["☀️", "🌻"],
+        "warriors": ["⚔️", "🛡️"],
+        "bullets": ["🔫", "🧨"],
+        "drum": ["🥁", "🎵"],
+        "me": ["✨", "🌈", "🦋"],
+        "brave": ["🦁", "💪"]
+    };
+
+    function getEmojiForWord(word) {
+        const list = emojiMap[word.toLowerCase()];
+        if (list) return list[Math.floor(Math.random() * list.length)];
+        const general = ["✨", "🔥", "💫", "⭐", "🚀", "💎"];
+        return general[Math.floor(Math.random() * general.length)];
+    }
+
     document.getElementById('invisible-input').addEventListener('input', (e) => {
         const val = e.target.value;
         render();
         updateStats();
         
-        const lastSpaceIdx = val.lastIndexOf(" ");
-        const lastWord = val.substring(lastSpaceIdx + 1).toLowerCase();
+        const words = val.trim().split(/\s+/);
+        const lastWord = words[words.length - 1].toLowerCase();
         let lineIdx = lineThresholds.findIndex(t => val.length < t);
         
+        // 1. 檢查是否有 backingVocals (Oh-oh)
         const bv = current.backingVocals.find(b => b.trigger === lastWord && b.index === lineIdx);
-        if (bv) spawnOh(bv.text);
+        if (bv) {
+            spawnEffect(bv.text, "var(--primary)");
+        } 
+        // 2. 隨機噴發符合歌詞的 Emoji
+        else if (e.data === " " || e.inputType === "insertLineBreak") {
+            spawnEffect(getEmojiForWord(lastWord));
+        }
     });
 
-    function spawnOh(text) {
+    function spawnEffect(text, color = null) {
         const cursor = document.querySelector('.cursor');
         if (!cursor) return;
         const rect = cursor.getBoundingClientRect();
         const winRect = document.getElementById('window-root').getBoundingClientRect();
+        const scrollY = document.getElementById('scroll-engine').style.transform.replace(/[^0-9-.]/g, '') || 0;
         
-        const oh = document.createElement('div');
-        oh.className = 'emoji-particle';
-        oh.innerText = text;
-        oh.style.color = "var(--primary)";
-        oh.style.fontSize = "24px";
-        oh.style.fontWeight = "bold";
-        oh.style.left = (rect.left - winRect.left) + "px";
-        oh.style.top = (rect.top - winRect.top) + "px";
-        oh.style.setProperty('--dx', (Math.random() - 0.5) * 100 + "px");
-        oh.style.setProperty('--dy', "-150px");
-        oh.style.setProperty('--dr', (Math.random() * 20 - 10) + "deg");
-        document.getElementById('window-root').appendChild(oh);
-        setTimeout(() => oh.remove(), 1000);
+        const el = document.createElement('div');
+        el.className = 'emoji-particle';
+        el.innerText = text;
+        if (color) el.style.color = color;
+        
+        el.style.left = (rect.left - winRect.left) + "px";
+        el.style.top = (rect.top - winRect.top - parseFloat(scrollY)) + "px";
+        el.style.setProperty('--dx', (Math.random() - 0.5) * 200 + "px");
+        el.style.setProperty('--dy', (Math.random() * -150 - 50) + "px");
+        el.style.setProperty('--dr', (Math.random() * 60 - 30) + "deg");
+        
+        document.getElementById('window-root').appendChild(el);
+        setTimeout(() => el.remove(), 1000);
     }
 
     function render() {
@@ -260,39 +264,37 @@
             }
             if (i === val.length - 1) html += `<span class="cursor"></span>`;
         }
-        document.getElementById('text-target').innerHTML = html;
+        document.getElementById('text-target').innerHTML = html || (target[0] ? '<span class="cursor"></span>' + target : '');
         
         const curEl = document.querySelector('.cursor') || document.getElementById('text-target');
-        document.getElementById('scroll-engine').style.transform = `translateY(-${curEl.offsetTop}px)`;
+        document.getElementById('scroll-engine').style.transform = `translateY(-${curEl.offsetTop - 40}px)`;
     }
 
     function getPos(lineIdx, word) {
         let pos = 0;
         for(let i=0; i<lineIdx; i++) pos += (current.lyrics[i] ? current.lyrics[i].length + 1 : 0);
         const lineText = current.lyrics[lineIdx];
-        return pos + (lineText ? lineText.indexOf(word) : 0);
+        const wordIdx = lineText ? lineText.indexOf(word) : -1;
+        return wordIdx !== -1 ? pos + wordIdx : -1;
     }
 
     function updateStats() {
         const val = document.getElementById('invisible-input').value;
         const target = fullLyricsString;
         
-        // 更新進度與翻譯
         let lineIdx = lineThresholds.findIndex(t => val.length < t);
         if (lineIdx === -1) lineIdx = current.lyrics.length - 1;
-        document.getElementById('trans-hint').innerText = current.translations[lineIdx];
+        document.getElementById('trans-hint').innerText = current.translations[lineIdx] || "";
 
-        // 計算正確率 (以當前輸入長度為準)
         let correct = 0;
         for(let i=0; i<val.length; i++) if(val[i] === target[i]) correct++;
         const percent = val.length > 0 ? Math.floor((correct / val.length) * 100) : 0;
         document.getElementById('stat-display').innerText = `Combo: ${val.length} | ${percent}%`;
 
-        // 更新單字卡
         const vocabCard = document.getElementById('card-vocab');
         const targetVocab = current.vocab.find(v => {
             const start = getPos(v.index, v.word);
-            return val.length >= (start - 5) && val.length <= (start + v.word.length);
+            return start !== -1 && val.length >= (start - 5) && val.length <= (start + v.word.length);
         });
 
         if (targetVocab) {
@@ -303,13 +305,7 @@
                 <span style="color:#aaa;">${targetVocab.k}</span>
                 <div style="margin-top:5px; font-size:18px;">${targetVocab.n}</div>`;
         } else {
-            const nextVocab = current.vocab.find(v => getPos(v.index, v.word) > val.length);
-            if (nextVocab) {
-                vocabCard.classList.remove('hidden');
-                document.getElementById('vocab-hint').innerHTML = `<div style="color:#666; font-size:12px;">NEXT</div><b style="color:#666; font-size:18px;">${nextVocab.word}</b>`;
-            } else {
-                vocabCard.classList.add('hidden');
-            }
+            vocabCard.classList.add('hidden');
         }
     }
     </script>

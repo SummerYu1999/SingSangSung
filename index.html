@@ -1,3 +1,4 @@
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -116,6 +117,7 @@
             <select id="song-select" onchange="loadSong()" style="background:#444; color:#fff; border:1px solid #666; border-radius:8px; padding:6px 12px; cursor:pointer;">
                 <option value="">-- 選擇歌曲 --</option>
                 <option value="song2">This Is Me (Greatest Showman)</option>
+                <option value="mumei">ムメイ (Mumei)</option> 
             </select>
         </div>
         <div id="stat-display" style="font-family: monospace; font-size: 18px; color: var(--primary); font-weight: bold;">Combo: 0 | 0%</div>
@@ -140,13 +142,10 @@
     </div>
 
     <script>
-    // --- 主程式全域狀態 ---
     let current = null, fullLyricsString = "", lineThresholds = [];
 
     function loadSong() {
         const key = document.getElementById('song-select').value;
-        
-        // 檢查外部資料是否存在
         if (typeof songData !== 'undefined' && songData[key]) {
             current = songData[key];
         } else {
@@ -154,14 +153,12 @@
             return;
         }
 
-        // 專屬背景切換
         if (key === 'song2') {
             document.body.classList.add('this-is-me-bg');
         } else {
             document.body.classList.remove('this-is-me-bg');
         }
 
-        // 初始化歌詞與邊界
         fullLyricsString = "";
         lineThresholds = [];
         let currentCount = 0;
@@ -219,34 +216,35 @@
         render();
         updateStats();
         
-        // 抓取最後一個單字
         const lastWord = val.split(/[\s\n]+/).pop().toLowerCase().replace(/[.,!]/g, '');
         let lineIdx = lineThresholds.findIndex(t => val.length < t);
         if (lineIdx === -1) lineIdx = current.lyrics.length - 1;
         
-        // 1. 檢查合聲特效 (Backing Vocals)
         const bv = current.backingVocals.find(b => b.trigger === lastWord && b.index === lineIdx);
         if (bv) {
             for(let i=0; i<5; i++) setTimeout(() => spawnEffect(bv.text, true), i * 150);
-            return; // 觸發了合聲就不噴一般 Emoji
+            return;
         }
 
-        // 2. 噴發一般 Emoji (全部從當前歌曲資料 current 中抓取)
         if (e.data && current) {
-            // 先看這首歌有沒有針對這個單字的專屬 Emoji Map
             const specialList = (current.emojiMap && current.emojiMap[lastWord]) ? current.emojiMap[lastWord] : null;
-            // 如果沒有專屬單字特效，就用這首歌的通用 Emoji 庫 (customEmojis)
             const list = specialList || current.customEmojis || [];
-            
             if (list.length > 0) {
                 spawnEffect(list[Math.floor(Math.random() * list.length)]);
             }
         }
     });
 
+    // 核心修改：增加 displayTarget 的邏輯，但比對依然看原本的 target
     function render() {
         const val = document.getElementById('invisible-input').value;
         const target = fullLyricsString;
+        
+        // 取得要顯示的文字（如果有日文就用日文，否則用英文/羅馬拼音）
+        const displayTarget = (current.displayLyrics) 
+            ? current.displayLyrics.join('\n') + '\n' 
+            : target;
+
         let html = "";
         const activeVocab = current.vocab.map(v => ({...v, start: getPos(v.index, v.word)}));
 
@@ -255,16 +253,19 @@
             let cls = "";
             if (i < val.length) cls = (val[i] === target[i] ? 'char-ok' : 'char-no');
             
+            // 畫面顯示 displayTarget 的內容
+            const charToShow = displayTarget[i] || "";
+            
             if (v) {
                 const isHitting = val.length >= v.start && val.length <= v.start + v.word.length;
-                html += `<span class="${cls} hard-word ${isHitting ? 'active' : ''}">${target[i]}</span>`;
+                html += `<span class="${cls} hard-word ${isHitting ? 'active' : ''}">${charToShow}</span>`;
             } else {
-                html += `<span class="${cls}">${target[i]}</span>`;
+                html += `<span class="${cls}">${charToShow}</span>`;
             }
             if (i === val.length - 1) html += `<span class="cursor"></span>`;
         }
         
-        if (val.length === 0) html = `<span class="cursor"></span>` + target;
+        if (val.length === 0) html = `<span class="cursor"></span>` + displayTarget;
         document.getElementById('text-target').innerHTML = html;
         const curEl = document.querySelector('.cursor') || document.getElementById('text-target');
         const offset = val.length === 0 ? 0 : curEl.offsetTop;

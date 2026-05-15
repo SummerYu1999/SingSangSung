@@ -1,8 +1,9 @@
-<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SingSangSung - The Full Stage</title>
+    <script src="This is me"></script> 
+    
     <style>
         :root { 
             --primary: #74b9ff; 
@@ -25,7 +26,7 @@
             transition: background 0.8s ease;
         }
 
-        /* 專屬背景樣式：透過 Class 控制 */
+        /* 專屬背景樣式 */
         body.this-is-me-bg {
             background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
                         url('https://i.guim.co.uk/img/media/69c18167301f85e8c94ca627f9d0cec61c4edef9/339_141_1331_799/master/1331.jpg?width=1200&dpr=1&s=none&crop=none');
@@ -88,7 +89,6 @@
         }
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* 特效粒子：升級後的拋物線動態 */
         .emoji-particle {
             position: absolute;
             pointer-events: none;
@@ -97,22 +97,11 @@
             animation: lively-fountain var(--duration) forwards cubic-bezier(0.15, 0.85, 0.35, 1.2);
         }
 
-       @keyframes lively-fountain {
-    0% { 
-        transform: translate(0, 0) scale(0) rotate(0deg); 
-        opacity: 0; 
-    }
-    15% { 
-        /* 縮短達到頂峰的時間（20% -> 15%），讓衝力更強 */
-        opacity: 1; 
-        transform: translate(calc(var(--mx) * 0.5), -60px) scale(1.4) rotate(var(--r1)); 
-    }
-    100% { 
-        /* 讓它最終消失在更高的地方（由 JS 的 --dy 控制） */
-        transform: translate(var(--dx), var(--dy)) scale(0.4) rotate(var(--r2)); 
-        opacity: 0; 
-    }
-}
+        @keyframes lively-fountain {
+            0% { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 0; }
+            15% { opacity: 1; transform: translate(calc(var(--mx) * 0.5), -60px) scale(1.4) rotate(var(--r1)); }
+            100% { transform: translate(var(--dx), var(--dy)) scale(0.4) rotate(var(--r2)); opacity: 0; }
+        }
 
         #invisible-input { position: fixed; top: -100px; opacity: 0; }
     </style>
@@ -124,7 +113,7 @@
             <input type="color" id="theme-color" value="#74b9ff" oninput="changeTheme(this.value)" style="border:none; width:30px; height:30px; background:none; cursor:pointer; padding:0;">
             <span style="font-size: 22px; font-weight: 900; color: var(--primary); letter-spacing: 1px;">SingSangSung</span>
             <select id="song-select" onchange="loadSong()" style="background:#444; color:#fff; border:1px solid #666; border-radius:8px; padding:6px 12px; cursor:pointer;">
-                <option value="">-- 選擇舞台 --</option>
+                <option value="">-- 選擇歌曲 --</option>
                 <option value="song2">This Is Me (Greatest Showman)</option>
             </select>
         </div>
@@ -150,121 +139,28 @@
     </div>
 
     <script>
-    // 這裡保證數據完整不省略
-    const songData = {
-        "song2": {
-            "lyrics": [
-                "i am not a stranger to the dark", "hide away they say", "cause we dont want your broken parts",
-                "ive learned to be ashamed of all my scars", "run away they say", "no onell love you as you are",
-                "but i wont let them break me down to dust", "i know that theres a place for us", "for we are glorious",
-                "when the sharpest words wanna cut me down", "im gonna send a flood gonna drown em out",
-                "i am brave i am bruised", "i am who im meant to be this is me", "look out cause here i come",
-                "and im marching on to the beat i drum", "im not scared to be seen", "i make no apologies this is me",
-                "another round of bullets hits my skin", "well fire away cause today i wont let the shame sink in",
-                "we are bursting through the barricades and", "reaching for the sun we are warriors",
-                "yeah thats what weve become", "i wont let them break me down to dust",
-                "i know that theres a place for us", "for we are glorious",
-                "when the sharpest words wanna cut me down", "im gonna send a flood gonna drown em out",
-                "i am brave i am bruised", "i am who im meant to be this is me",
-                "look out cause here i come", "and im marching on to the beat i drum",
-                "im not scared to be seen", "i make no apologies this is me",
-                "this is me", "and i know that i deserve your love", "there is nothing im not worthy of",
-                "when the sharpest words wanna cut me down", "im gonna send a flood gonna drown em out",
-                "this is brave this is bruised", "this is who im meant to be this is me",
-                "look out cause here i come", "and im marching on to the beat i drum",
-                "im not scared to be seen", "i make no apologies this is me",
-                "whenever the words wanna cut me down", "ill send a flood to drown em out",
-                "im gonna send a flood", "gonna drown them em out", "this is me"
-            ],
-            "translations": [
-                "我對於黑暗來說並非陌生人", "他們說：躲起來吧", "因為我們不要殘破的你",
-                "我曾學會為這滿身瘡痍感到羞恥", "他們說：跑走吧", "沒有人會愛真實的你",
-                "但我不會讓他們將我碾作塵埃", "我知道一定有個地方屬於我們", "因為我們是星光璀璨的",
-                "當那些銳利的言語要砍向我時", "我將掀起狂潮把全部悉數吞噬",
-                "我雖滿身傷痕，卻依然無畏", "我就是我注定該成為的樣貌，這就是我", "當心我要來了",
-                "我隨著我的鼓點勇往直前", "我不害怕被看見", "無需任何歉意，這就是我",
-                "另一輪的槍林彈雨朝我襲來", "儘管開火吧，今天我不會讓這些羞辱侵蝕我", "我們正衝破層層阻礙",
-                "奔向暖陽，我們是戰士", "是的，這就是我們蛻變後的模樣",
-                "但我不會讓他們將我碾作塵埃", "我知道一定有個地方屬於我們", "因為我們是星光璀璨的",
-                "當那些銳利的言語要砍向我時", "我將掀起狂潮把全部悉數吞噬",
-                "我雖滿身傷痕，卻依然無畏", "我就是我注定該成為的樣貌，這就是我",
-                "當心我要來了", "我隨著我的鼓點勇往直前", "我不害怕被看見", "無需任何歉意，這就是我",
-                "這就是我", "我深知自己值得被愛", "沒有任何東西是我不配得的",
-                "當那些銳利的言語要砍向我時", "我將掀起狂潮把全部悉數吞噬",
-                "這份勇敢，這份傷痕", "這就是我注定該成為的樣貌，這就是我",
-                "當心我要來了", "我隨著我的鼓點勇往直前", "我不害怕被看見", "無需任何歉意，這就是我",
-                "每當那些言語要砍向我時", "我將掀起狂潮將其吞噬", "我將掀起狂潮", "悉數吞噬", "這就是我"
-            ],
-            "vocab": [
-                { "word": "stranger", "index": 0, "k": "[ˈstrendʒɚ]", "n": "陌生人" },
-                { "word": "ashamed", "index": 3, "k": "[əˈʃemd]", "n": "感到羞愧的" },
-                { "word": "scars", "index": 3, "k": "[skɑrz]", "n": "疤痕；創傷" },
-                { "word": "glorious", "index": 8, "k": "[ˈɡloriəs]", "n": "星光璀璨的" },
-                { "word": "sharpest", "index": 9, "k": "[ˈʃɑrpɪst]", "n": "最尖銳的" },
-                { "word": "bruised", "index": 11, "k": "[bruzd]", "n": "受傷的；瘀青的" },
-                { "word": "marching", "index": 14, "k": "[ˈmɑrtʃɪŋ]", "n": "勇往直前" },
-                { "word": "apologies", "index": 16, "k": "[əˈpɑlədʒiz]", "n": "歉意" },
-                { "word": "barricades", "index": 19, "k": "[ˌbærɪˈkedz]", "n": "阻礙；障礙物" },
-                { "word": "warriors", "index": 20, "k": "[ˈwɔriɚz]", "n": "戰士；勇士" },
-                { "word": "deserve", "index": 34, "k": "[dɪˈzɝv]", "n": "應得；值得" },
-                { "word": "worthy", "index": 35, "k": "[ˈwɝði]", "n": "配得上...的" }
-            ],
-            "backingVocals": [
-                { "trigger": "out", "index": 47, "text": "oh-oh-oh!" },
-                { "trigger": "down", "index": 44, "text": "oh-oh-oh-oh" },
-                { "trigger": "me", "index": 16, "text": "Oh-oh-oh-oh!" }
-            ]
-        }
-    };
-
+    // --- 主程式全域狀態 ---
     let current = null, fullLyricsString = "", lineThresholds = [];
-
-    const emojiMap = {
-        "dark": ["🌙", "🌑", "🌃", "🕯️"], "stranger": ["👤", "🎭"], "hide": ["🙈", "📦"],
-        "broken": ["💔", "🧩", "⛓️"], "scars": ["❤️‍🩹", "🩹", "🛡️"], "dust": ["💨", "✨", "🌫️"],
-        "glorious": ["👑", "💎", "✨", "🎆"], "sharpest": ["🔪", "⚔️", "🗡️"], "words": ["🗣️", "📜", "💬"],
-        "flood": ["🌊", "⛈️", "💧"], "brave": ["🦁", "🔥", "✊"], "bruised": ["🥊", "💜", "🩹"],
-        "me": ["🌈", "✨", "💃", "🕺", "🎩"], "march": ["🥁", "💂", "🚶"], "beat": ["🥁", "💓", "🎵"],
-        "drum": ["🥁", "🎶", "💥"], "bullets": ["💥", "☄️", "⚡"], "fire": ["🔥", "🧨", "🏹"],
-        "sun": ["☀️", "🌻", "🌅"], "warriors": ["⚔️", "🔱", "🛡️"], "look": ["👁️", "🔦", "🎪"],
-        "apologies": ["🙏", "🕊️"], "barricades": ["🚧", "🧱", "🛡️"]
-    };
-    const genericEmojis = [
-    // --- 星光與夢幻 (✨/💫) ---
-    "✨", "💫", "⭐", "🌟", "🎇", "🎆", "🌠", "🔮", "💎", "💍", "🧿", "🪄",
-    
-    // --- 舞台、馬戲團與藝術 (🎪/🎭) ---
-    "🎪", "🎭", "🎩", "🎬", "🎤", "🎸", "🎻", "🎷", "🎹", "🥁", "🎨", "🎟️", "🏮", "🕯️",
-    
-    // --- 慶典與歡樂 (🎊/🌈) ---
-    "🎊", "🎉", "🎈", "🌈", "🔥", "💥", "⚡", "☀️", "🌅", "🏙️", "🎡", "🎢", "🎠",
-    
-    // --- 勇氣與生命力 (🦁/🦋) ---
-    "🦁", "🦋", "🦅", "🕊️", "🐉", "🦄", "🐾", "💪", "✊", "❤️", "🔥", "🚩", "🛡️", "⚔️", "🔱",
-    
-    // --- 律動與人像 (💃/🕺) ---
-    "💃", "🕺", "🕴️", "👣", "👠", "👑", "👔", "🎭", "📢", "🔊", "🎶", "🎵",
-    
-    // --- 抽象與點綴 (🧿/🌀) ---
-    "🌀", "💠", "💮", "🌺", "🌻", "☀️", "🌊", "🌬️", "🫧", "🔱", "⚜️", "💯", "🚀", "🛸"
-];
 
     function loadSong() {
         const key = document.getElementById('song-select').value;
-        current = songData[key];
         
-        // 專屬背景切換邏輯
+        // 檢查外部資料是否存在
+        if (typeof songData !== 'undefined' && songData[key]) {
+            current = songData[key];
+        } else {
+            document.getElementById('game-view').style.display = 'none';
+            return;
+        }
+
+        // 專屬背景切換
         if (key === 'song2') {
             document.body.classList.add('this-is-me-bg');
         } else {
             document.body.classList.remove('this-is-me-bg');
         }
 
-        if (!current) {
-            document.getElementById('game-view').style.display = 'none';
-            return;
-        }
-        
+        // 初始化歌詞與邊界
         fullLyricsString = "";
         lineThresholds = [];
         let currentCount = 0;
@@ -322,17 +218,28 @@
         render();
         updateStats();
         
+        // 抓取最後一個單字
         const lastWord = val.split(/[\s\n]+/).pop().toLowerCase().replace(/[.,!]/g, '');
         let lineIdx = lineThresholds.findIndex(t => val.length < t);
         if (lineIdx === -1) lineIdx = current.lyrics.length - 1;
         
+        // 1. 檢查合聲特效 (Backing Vocals)
         const bv = current.backingVocals.find(b => b.trigger === lastWord && b.index === lineIdx);
-        
         if (bv) {
             for(let i=0; i<5; i++) setTimeout(() => spawnEffect(bv.text, true), i * 150);
-        } else if (e.data) {
-            const list = emojiMap[lastWord] || genericEmojis;
-            spawnEffect(list[Math.floor(Math.random() * list.length)]);
+            return; // 觸發了合聲就不噴一般 Emoji
+        }
+
+        // 2. 噴發一般 Emoji (全部從當前歌曲資料 current 中抓取)
+        if (e.data && current) {
+            // 先看這首歌有沒有針對這個單字的專屬 Emoji Map
+            const specialList = (current.emojiMap && current.emojiMap[lastWord]) ? current.emojiMap[lastWord] : null;
+            // 如果沒有專屬單字特效，就用這首歌的通用 Emoji 庫 (customEmojis)
+            const list = specialList || current.customEmojis || [];
+            
+            if (list.length > 0) {
+                spawnEffect(list[Math.floor(Math.random() * list.length)]);
+            }
         }
     });
 
@@ -404,7 +311,6 @@
         }
     }
     function changeTheme(color) {
-        // 同步更新 CSS 變數中的 primary 顏色
         document.documentElement.style.setProperty('--primary', color);
     }
     </script>

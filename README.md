@@ -266,8 +266,18 @@
         }
         document.getElementById('text-target').innerHTML = html || (target[0] ? '<span class="cursor"></span>' + target : '');
         
-        const curEl = document.querySelector('.cursor') || document.getElementById('text-target');
-        document.getElementById('scroll-engine').style.transform = `translateY(-${curEl.offsetTop - 40}px)`;
+        // 修正捲動邏輯：確保只有在有輸入內容時才開始捲動
+        const cursor = document.querySelector('.cursor');
+        const scrollEngine = document.getElementById('scroll-engine');
+        
+        if (val.length === 0) {
+            // 如果還沒開始打字，強制回到最上方
+            scrollEngine.style.transform = `translateY(0px)`;
+        } else if (cursor) {
+            // 計算光標相對於練習視窗頂部的距離，並保持在視窗上方約 40px 的位置
+            const offset = cursor.offsetTop;
+            scrollEngine.style.transform = `translateY(-${offset - 40}px)`;
+        }
     }
 
     function getPos(lineIdx, word) {

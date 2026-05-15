@@ -56,19 +56,35 @@
         .cursor { border-left: 3px solid var(--primary); animation: blink 0.8s infinite; display: inline-block; height: 1.1em; vertical-align: middle; }
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* 特效動畫定義 */
+       /* 讓文字/Oh 噴發出來的完整特效 */
         .emoji-particle {
             position: absolute;
             pointer-events: none;
-            animation: moveOut 1s forwards ease-out;
             z-index: 1000;
             white-space: nowrap;
-        }
-        @keyframes moveOut {
-            to { transform: translate(var(--dx), var(--dy)) rotate(var(--dr)); opacity: 0; }
+            font-family: "Segoe UI Emoji", sans-serif;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            /* 使用更高動感的動畫曲線 */
+            animation: emoji-fly 1s forwards cubic-bezier(0.12, 0, 0.39, 0);
         }
 
-        #invisible-input { position: fixed; top: -100px; opacity: 0; }
+        @keyframes emoji-fly {
+            0% {
+                transform: translate(0, 0) scale(0.5) rotate(0deg);
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+                transform: translate(0, -20px) scale(1.2);
+            }
+            100% {
+                /* 使用 JS 傳入的偏移變數 --dx, --dy, --dr */
+                transform: translate(var(--dx), var(--dy)) scale(1.5) rotate(var(--dr));
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body onclick="document.getElementById('invisible-input').focus()">

@@ -1,0 +1,41 @@
+function render() {
+    const val = document.getElementById('invisible-input').value;
+    const target = fullLyricsString; // 羅馬拼音
+    
+    // 檢查是否有對應的日文歌詞，如果有，將其展開成完整字串；如果沒有，就用原本的
+    const displayTarget = (current.displayLyrics) 
+        ? current.displayLyrics.join('\n') + '\n' 
+        : target;
+
+    let html = "";
+    const activeVocab = current.vocab.map(v => ({...v, start: getPos(v.index, v.word)}));
+
+    for (let i = 0; i < target.length; i++) {
+        const v = activeVocab.find(av => i >= av.start && i < av.start + av.word.length);
+        let cls = "";
+        
+        // 判定對錯依然是根據「target」（羅馬拼音）
+        if (i < val.length) {
+            cls = (val[i] === target[i] ? 'char-ok' : 'char-no');
+        }
+        
+        // 畫面顯示則是根據「displayTarget」（日文）
+        const charToShow = displayTarget[i] || "";
+        
+        if (v) {
+            const isHitting = val.length >= v.start && val.length <= v.start + v.word.length;
+            html += `<span class="${cls} hard-word ${isHitting ? 'active' : ''}">${charToShow}</span>`;
+        } else {
+            html += `<span class="${cls}">${charToShow}</span>`;
+        }
+        
+        if (i === val.length - 1) html += `<span class="cursor"></span>`;
+    }
+    
+    if (val.length === 0) html = `<span class="cursor"></span>` + displayTarget;
+    document.getElementById('text-target').innerHTML = html;
+    
+    const curEl = document.querySelector('.cursor') || document.getElementById('text-target');
+    const offset = val.length === 0 ? 0 : curEl.offsetTop;
+    document.getElementById('scroll-engine').style.transform = `translateY(-${offset}px)`;
+}

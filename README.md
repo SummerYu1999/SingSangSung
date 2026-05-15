@@ -1,20 +1,35 @@
-<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SingSangSung - Smart Focus</title>
+    <title>SingSangSung - This Is Me Special Edition</title>
     <style>
-        :root { --primary: #74b9ff; --accent: #ff7675; --bg: #2d3436; --card: #353b48; --text: #dfe6e9; --highlight: #ffeaa7; }
+        :root { 
+            --primary: #74b9ff; 
+            --accent: #ff7675; 
+            --bg: #2d3436; 
+            --card: #353b48; 
+            --text: #dfe6e9; 
+            --highlight: #ffeaa7; 
+        }
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        body { 
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+        }
         
         header { background: rgba(0,0,0,0.6); padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
         .controls { display: flex; gap: 15px; align-items: center; }
         
         .main-game { 
             display: grid; 
-            grid-template-columns: 1fr 250px; 
+            grid-template-columns: 1fr 280px; 
             gap: 20px; 
             padding: 20px; 
             flex: 1; 
@@ -24,35 +39,60 @@
             width: 100%; 
         }
 
-        .sidebar { display: flex; flex-direction: column; gap: 15px; justify-content: flex-start; }
-        .card { background: var(--card); padding: 18px; border-radius: 14px; border-left: 5px solid var(--primary); box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .sidebar { display: flex; flex-direction: column; gap: 15px; }
+        .card { 
+            background: var(--card); 
+            padding: 18px; 
+            border-radius: 14px; 
+            border-left: 5px solid var(--primary); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
         .card.hidden { opacity: 0; transform: translateX(20px); }
 
-        .practice-window { position: relative; overflow: hidden; background: rgba(0,0,0,0.2); border-radius: 20px; padding: 40px; height: 100%; }
-        #scroll-engine { transition: transform 0.3s ease; }
-        #text-target { white-space: pre-wrap; color: #555; position: relative; font-size: 28px; line-height: 1.6; }
+        .practice-window { 
+            position: relative; 
+            overflow: hidden; 
+            background: rgba(0,0,0,0.3); 
+            border-radius: 20px; 
+            padding: 60px 40px; 
+            height: 100%; 
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+        }
+        #scroll-engine { transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1); }
+        #text-target { white-space: pre-wrap; color: #555; position: relative; font-size: 32px; line-height: 1.8; font-weight: 500; }
         
         .char-ok { color: #fff; text-shadow: 0 0 12px var(--primary); }
-        .char-no { color: var(--accent); background: rgba(255,118,117,0.2); }
-        .hard-word { border-bottom: 2px dashed var(--highlight); color: #888; }
-        .hard-word.active { color: var(--highlight); text-shadow: 0 0 8px var(--highlight); }
+        .char-no { color: var(--accent); background: rgba(255,118,117,0.2); border-radius: 4px; }
+        .hard-word { border-bottom: 2px dashed var(--highlight); color: #777; }
+        .hard-word.active { color: var(--highlight); text-shadow: 0 0 10px var(--highlight); }
 
-        .cursor { border-left: 3px solid var(--primary); animation: blink 0.8s infinite; display: inline-block; height: 1.1em; vertical-align: middle; }
+        .cursor { 
+            border-left: 3px solid var(--primary); 
+            animation: blink 0.8s infinite; 
+            display: inline-block; 
+            height: 1.1em; 
+            vertical-align: middle; 
+            margin-left: 2px;
+            box-shadow: 0 0 10px var(--primary);
+        }
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* 特效粒子 */
+        /* 特效粒子：拋物線物理感 */
         .emoji-particle {
             position: absolute;
             pointer-events: none;
             z-index: 1000;
             white-space: nowrap;
-            font-size: 24px;
-            animation: emoji-fly 1s forwards ease-out;
+            font-size: 28px;
+            filter: drop-shadow(0 0 8px rgba(255,255,255,0.3));
+            animation: emoji-fountain var(--duration) forwards cubic-bezier(0.22, 1, 0.36, 1);
         }
-        @keyframes emoji-fly {
-            0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
-            20% { opacity: 1; transform: translate(0, -10px) scale(1.2); }
-            100% { transform: translate(var(--dx), var(--dy)) scale(1.5) rotate(var(--dr)); opacity: 0; }
+
+        @keyframes emoji-fountain {
+            0% { transform: translate(0, 0) scale(0); opacity: 0; }
+            15% { opacity: 1; transform: translate(0, -25px) scale(1.3); }
+            100% { transform: translate(var(--dx), var(--dy)) scale(0.7) rotate(var(--dr)); opacity: 0; }
         }
 
         #invisible-input { position: fixed; top: -100px; opacity: 0; }
@@ -62,13 +102,13 @@
 
     <header>
         <div class="controls">
-            <span style="font-size: 20px; font-weight: 900; color: var(--primary);">SingSangSung</span>
-            <select id="song-select" onchange="loadSong()" style="background:#333; color:#fff; border-radius:8px; padding:5px;">
+            <span style="font-size: 22px; font-weight: 900; color: var(--primary); letter-spacing: 1px;">SingSangSung</span>
+            <select id="song-select" onchange="loadSong()" style="background:#333; color:#fff; border:1px solid #555; border-radius:8px; padding:6px 12px; cursor:pointer;">
                 <option value="">-- 選擇曲目 --</option>
                 <option value="song2">This Is Me (Greatest Showman)</option>
             </select>
         </div>
-        <div id="stat-display" style="font-family: monospace; color: var(--primary);">Combo: 0 | 0%</div>
+        <div id="stat-display" style="font-family: 'Courier New', monospace; font-size: 18px; color: var(--primary); font-weight: bold;">Combo: 0 | 0%</div>
     </header>
 
     <div class="main-game" id="game-view" style="display:none;">
@@ -76,7 +116,7 @@
             <div id="scroll-engine">
                 <div id="text-target"></div>
             </div>
-            <textarea id="invisible-input" spellcheck="false"></textarea>
+            <textarea id="invisible-input" spellcheck="false" autocomplete="off"></textarea>
         </div>
 
         <div class="sidebar">
@@ -84,7 +124,7 @@
                 <div id="vocab-hint"></div>
             </div>
             <div class="card" id="card-trans" style="border-left-color:#a29bfe;">
-                <div id="trans-hint"></div>
+                <div id="trans-hint" style="line-height: 1.5; font-size: 18px;"></div>
             </div>
         </div>
     </div>
@@ -158,11 +198,34 @@
 
     let current = null, fullLyricsString = "", lineThresholds = [];
 
+    // 電影與歌詞聯想詞庫
     const emojiMap = {
-        "dark": ["🌙", "🌑"], "scars": ["🩹", "❤️‍🩹"], "flood": ["🌊", "💧"],
-        "sun": ["☀️", "🌻"], "warriors": ["⚔️", "🛡️"], "me": ["✨", "🌈"],
-        "brave": ["🦁", "💪"], "love": ["💖", "🥰"]
+        "dark": ["🌙", "🌑", "🌃", "🕯️"],
+        "stranger": ["👤", "🎭"],
+        "hide": ["🙈", "📦"],
+        "broken": ["💔", "🧩", "⛓️"],
+        "scars": ["❤️‍🩹", "🩹", "🛡️"],
+        "dust": ["💨", "✨", "🌫️"],
+        "glorious": ["👑", "💎", "✨", "🎆"],
+        "sharpest": ["🔪", "⚔️", "🗡️"],
+        "words": ["🗣️", "📜", "💬"],
+        "flood": ["🌊", "⛈️", "💧"],
+        "brave": ["🦁", "🔥", "✊"],
+        "bruised": ["🥊", "💜", "🩹"],
+        "me": ["🌈", "✨", "💃", "🕺", "🎩"],
+        "march": ["鼓", "💂", "🚶"],
+        "beat": ["🥁", "💓", "🎵"],
+        "drum": ["🥁", "🎶", "💥"],
+        "bullets": ["💥", "☄️", "⚡"],
+        "fire": ["🔥", "🧨", "🏹"],
+        "sun": ["☀️", "🌻", "🌅"],
+        "warriors": ["⚔️", "🔱", "🛡️"],
+        "look": ["👁️", "🔦", "🎪"],
+        "apologies": ["🙏", "🕊️"],
+        "barricades": ["🚧", "🧱", "🛡️"]
     };
+
+    const genericEmojis = ["✨", "💫", "⭐", "🎪", "🎭", "🪄", "🎩"];
 
     function loadSong() {
         const key = document.getElementById('song-select').value;
@@ -178,10 +241,10 @@
             lineThresholds.push(currentCount);
         });
 
-        document.getElementById('invisible-input').value = ""; // 重置輸入
+        document.getElementById('invisible-input').value = "";
         document.getElementById('game-view').style.display = 'grid';
         render();
-        document.getElementById('invisible-input').focus();
+        setTimeout(() => document.getElementById('invisible-input').focus(), 100);
     }
 
     document.getElementById('invisible-input').addEventListener('input', (e) => {
@@ -190,16 +253,17 @@
         updateStats();
         
         const lastSpaceIdx = val.lastIndexOf(" ");
-        const lastWord = val.substring(lastSpaceIdx + 1).toLowerCase();
+        const lastWord = val.substring(lastSpaceIdx + 1).toLowerCase().replace(/[.,!]/g, '');
         let lineIdx = lineThresholds.findIndex(t => val.length < t);
         
-        // 1. 特殊 backingVocals 觸發
         const bv = current.backingVocals.find(b => b.trigger === lastWord && b.index === lineIdx);
+        
         if (bv) {
-            spawnEffect(bv.text, true);
+            // 大合唱強化：噴發三次
+            for(let i=0; i<3; i++) setTimeout(() => spawnEffect(bv.text, true), i * 150);
         } else if (e.data) {
-            // 2. 一般打字觸發隨機 Emoji
-            const list = emojiMap[lastWord] || ["✨", "🔥", "💫", "⭐", "🌟"];
+            // 打字噴發：關鍵字匹配或隨機
+            const list = emojiMap[lastWord] || genericEmojis;
             const randomEmoji = list[Math.floor(Math.random() * list.length)];
             spawnEffect(randomEmoji);
         }
@@ -216,21 +280,29 @@
         el.className = 'emoji-particle';
         el.innerText = text;
         
-        if (isOh) {
-            el.style.color = "var(--primary)";
-            el.style.fontWeight = "bold";
-        }
+        const duration = isOh ? 1.6 : (0.8 + Math.random() * 0.6);
+        const dx = (Math.random() - 0.5) * 220; 
+        const dy = -120 - (Math.random() * 160);
+        const dr = (Math.random() * 360);
         
-        // 計算位置：需考量當前捲動高度，確保噴發在正確字符旁
+        el.style.setProperty('--duration', `${duration}s`);
+        el.style.setProperty('--dx', `${dx}px`);
+        el.style.setProperty('--dy', `${dy}px`);
+        el.style.setProperty('--dr', `${dr}deg`);
+        
+        // 精準跟隨光標定位
         el.style.left = (rect.left - winRect.left) + "px";
         el.style.top = (rect.top - winRect.top) + "px";
         
-        el.style.setProperty('--dx', (Math.random() - 0.5) * 150 + "px");
-        el.style.setProperty('--dy', (Math.random() * -150 - 50) + "px");
-        el.style.setProperty('--dr', (Math.random() * 60 - 30) + "deg");
+        if (isOh) {
+            el.style.fontSize = "36px";
+            el.style.color = "var(--highlight)";
+            el.style.fontWeight = "900";
+            el.style.textShadow = "0 0 20px var(--primary), 0 0 30px var(--primary)";
+        }
         
         winRoot.appendChild(el);
-        setTimeout(() => el.remove(), 1000);
+        setTimeout(() => el.remove(), duration * 1000);
     }
 
     function render() {
@@ -253,13 +325,12 @@
             }
             if (i === val.length - 1) html += `<span class="cursor"></span>`;
         }
-        // 如果剛開始打字，也要顯示光標
+        
         if (val.length === 0) html = `<span class="cursor"></span>` + target;
         
         document.getElementById('text-target').innerHTML = html;
         
         const curEl = document.querySelector('.cursor') || document.getElementById('text-target');
-        // 捲動邏輯保持不變，但確保初始狀態為 0
         const offset = val.length === 0 ? 0 : curEl.offsetTop;
         document.getElementById('scroll-engine').style.transform = `translateY(-${offset}px)`;
     }
@@ -294,15 +365,15 @@
         if (targetVocab) {
             vocabCard.classList.remove('hidden');
             document.getElementById('vocab-hint').innerHTML = `
-                <div style="color:var(--highlight); font-size:12px;">KEY WORD</div>
-                <b style="font-size:22px; color:var(--primary)">${targetVocab.word}</b> 
-                <span style="color:#aaa;">${targetVocab.k}</span>
-                <div style="margin-top:5px; font-size:18px;">${targetVocab.n}</div>`;
+                <div style="color:var(--highlight); font-size:12px; font-weight:bold; margin-bottom:4px;">KEY VOCAB</div>
+                <b style="font-size:24px; color:var(--primary)">${targetVocab.word}</b> 
+                <div style="color:#aaa; font-size:14px; margin:4px 0;">${targetVocab.k}</div>
+                <div style="font-size:18px; color:#fff;">${targetVocab.n}</div>`;
         } else {
             const nextVocab = current.vocab.find(v => getPos(v.index, v.word) > val.length);
             if (nextVocab) {
                 vocabCard.classList.remove('hidden');
-                document.getElementById('vocab-hint').innerHTML = `<div style="color:#666; font-size:12px;">NEXT</div><b style="color:#666; font-size:18px;">${nextVocab.word}</b>`;
+                document.getElementById('vocab-hint').innerHTML = `<div style="color:#666; font-size:12px;">UPCOMING</div><b style="color:#888; font-size:18px;">${nextVocab.word}</b>`;
             } else {
                 vocabCard.classList.add('hidden');
             }

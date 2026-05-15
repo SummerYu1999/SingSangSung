@@ -98,11 +98,22 @@
             animation: lively-fountain var(--duration) forwards cubic-bezier(0.15, 0.85, 0.35, 1.2);
         }
 
-        @keyframes lively-fountain {
-            0% { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 0; }
-            20% { opacity: 1; transform: translate(var(--mx), -40px) scale(1.4) rotate(var(--r1)); }
-            100% { transform: translate(var(--dx), var(--dy)) scale(0.6) rotate(var(--r2)); opacity: 0; }
-        }
+       @keyframes lively-fountain {
+    0% { 
+        transform: translate(0, 0) scale(0) rotate(0deg); 
+        opacity: 0; 
+    }
+    15% { 
+        /* 縮短達到頂峰的時間（20% -> 15%），讓衝力更強 */
+        opacity: 1; 
+        transform: translate(calc(var(--mx) * 0.5), -60px) scale(1.4) rotate(var(--r1)); 
+    }
+    100% { 
+        /* 讓它最終消失在更高的地方（由 JS 的 --dy 控制） */
+        transform: translate(var(--dx), var(--dy)) scale(0.4) rotate(var(--r2)); 
+        opacity: 0; 
+    }
+}
 
         #invisible-input { position: fixed; top: -100px; opacity: 0; }
     </style>
@@ -266,7 +277,7 @@
         const duration = isOh ? 1.8 : (0.8 + Math.random() * 0.7);
         const mx = (Math.random() - 0.5) * 80; 
         const dx = (Math.random() - 0.5) * 400; 
-        const dy = -150 - (Math.random() * 250); 
+        const dy = -300 - (Math.random() * 300); 
         const r1 = (Math.random() * 90) + "deg"; 
         const r2 = (Math.random() * 360) + "deg";
         

@@ -111,6 +111,7 @@
 
     <header>
         <div class="controls">
+            <input type="color" id="theme-color" value="#74b9ff" oninput="changeTheme(this.value)" style="border:none; width:30px; height:30px; background:none; cursor:pointer; padding:0;">
             <span style="font-size: 22px; font-weight: 900; color: var(--primary); letter-spacing: 1px;">SingSangSung</span>
             <select id="song-select" onchange="loadSong()" style="background:#444; color:#fff; border:1px solid #666; border-radius:8px; padding:6px 12px; cursor:pointer;">
                 <option value="">-- 選擇舞台 --</option>
@@ -373,6 +374,10 @@
                 vocabCard.classList.add('hidden');
             }
         }
+    }
+    function changeTheme(color) {
+        // 同步更新 CSS 變數中的 primary 顏色
+        document.documentElement.style.setProperty('--primary', color);
     }
     </script>
 </body>

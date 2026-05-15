@@ -5,14 +5,6 @@
     <title>SingSangSung - Smart Focus</title>
     <style>
         :root { --primary: #74b9ff; --accent: #ff7675; --bg: #2d3436; --card: #353b48; --text: #dfe6e9; --highlight: #ffeaa7; }
-        * { box-sizing: border-box; }<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SingSangSung - Smart Focus</title>
-    <style>
-        :root { --primary: #74b9ff; --accent: #ff7675; --bg: #2d3436; --card: #353b48; --text: #dfe6e9; --highlight: #ffeaa7; }
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
         

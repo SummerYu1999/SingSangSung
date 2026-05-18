@@ -70,9 +70,16 @@
         }
         .card.hidden { opacity: 0; transform: translateX(20px); }
 
-        #text-target { white-space: pre-wrap; color: rgba(255,255,255,0.15); position: relative; font-size: 32px; line-height: 2.5; font-weight: 500; letter-spacing: 2px; }
+        #text-target { 
+            white-space: pre-wrap; 
+            color: rgba(255,255,255,0.15); 
+            position: relative; 
+            font-size: 32px; 
+            line-height: 2.8; /* 稍微拉開行高，留出完美的羅馬字常駐空間 */
+            font-weight: 500; 
+            letter-spacing: 2px; 
+        }
         
-        /* 點亮時的填滿顏色效果 */
         .char-ok { 
             color: #fff; 
             text-shadow: 0 0 10px var(--glitch-blue);
@@ -82,7 +89,7 @@
         
         /* 當前正在打的字組提示下底線 */
         .current-word-hint {
-            border-bottom: 2px solid rgba(116, 185, 255, 0.5);
+            border-bottom: 2px solid rgba(116, 185, 255, 0.6);
         }
 
         .cursor { 
@@ -95,11 +102,11 @@
         }
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* 羅馬拼音浮動小提示容器 */
+        /* 羅馬拼音浮動小提示容器 - 改為永遠存在(常駐)，高度固定 */
         .roma-tip {
             position: absolute;
             font-size: 14px;
-            top: -24px;
+            top: -26px; /* 牢牢固定在正上方 */
             left: 50%;
             transform: translateX(-50%);
             white-space: nowrap;
@@ -107,12 +114,19 @@
             letter-spacing: 1px;
             display: flex;
             gap: 1px;
+            height: 18px; /* 強制限定高度，不讓它伸縮 */
+            line-height: 18px;
         }
         
-        /* 單個羅馬字母的樣式 */
+        /* 羅馬字母基本樣式（還沒打到時，帶有淡淡的透明度，若隱若現） */
         .roma-char {
-            color: #666; /* 預設未輸入的灰色 */
-            transition: color 0.1s ease;
+            color: rgba(255, 255, 255, 0.2);
+            transition: color 0.1s ease, text-shadow 0.1s ease;
+        }
+        
+        /* 當前字組中，還沒打到的字母，稍微亮一點點作為指引 */
+        .roma-char-upcoming {
+            color: rgba(255, 255, 255, 0.4);
         }
         
         /* 打對的羅馬字母點亮樣式 */
@@ -122,10 +136,15 @@
             font-weight: bold;
         }
 
+        /* 已經完美打完的字組，其羅馬字維持超淡顏色 */
+        .roma-char-done {
+            color: rgba(255, 255, 255, 0.1);
+        }
+
         .char-box {
             position: relative;
             display: inline-block;
-            margin-top: 15px; /* 給上方的羅馬字留點空間 */
+            margin-top: 10px;
         }
 
         #invisible-input { position: fixed; top: -100px; opacity: 0; }
@@ -209,14 +228,14 @@
                 "ima a a a a a i ki te iku yo atashi mumei no mama"
             ],
             "displayLyrics": [
-                "忘 れ て し まった こと だけ を 覚え て いる",
+                "忘 れ て し まった こと だけで を 覚え て いる",
                 "ぽかり と 空いた 穴 の 先 で 君 と 出會った",
                 "名 前 も 顔 も わか ら ない 君",
                 "なん だ加 懐 か し い ような 気が し た",
                 "互 い に 穴 埋めて いく ように",
                 "ふさ げ あって 笑 い あって",
-                "世界 a a a a a ai の どこ か に いる 君 の ため",
-                "今 a a a a a i き てい る yo 僕 ら 無名 の まま",
+                "世界 a a a a a ai の 邊 か に いる 君 の ため",
+                "今 a a a a a i き てい る よ 僕 ら 無名 の まま",
                 "無名 の まま",
                 "たと え 葉 これ 賀 映 し 出 させ た 幻 でも",
                 "確 か に 感 じ る 今 君 が そこ に いる こと",
@@ -224,7 +243,7 @@
                 "さよ なら し て しま え ば は 終わり だ",
                 "君 が いな きゃ 穴 は 大き く なる",
                 "構 わな い さ すぐ 見つ か る",
-                "世界 a a a a a ai の どこ か に いる 君 は どこ",
+                "世界 a a a a a ai の 邊 か に いる 君 は 邊",
                 "今 a a a a a ここ に いる よ",
                 "私 ── 無名",
                 "あたり は 一面 真っ暗 な 世界",
@@ -234,7 +253,7 @@
                 "それ でも 君 が 求め る の なら",
                 "この 胸 に 空いた 穴 に 今",
                 "君 から 私 へ 風 は 通り抜け",
-                "一羽 の 鳥 が 今 君 の 元 へ と 行く",
+                "一羽 の 鳥 が 今 君 の 元 へ と 行去",
                 "世界 a a a a a ai の 邊 か に いる 君 の ため",
                 "今 a a a a a i き て いく よ 私 無名 の まま"
             ],
@@ -364,8 +383,7 @@
                 const blockGlobalStart = globalRomaCursor + block.lineStart;
                 const blockGlobalEnd = globalRomaCursor + block.lineEnd;
                 
-                // 追蹤個別字母的對錯狀態
-                let letterStatuses = []; // 儲存每個字母是否亮起
+                let letterStatuses = []; 
                 let correctCount = 0;
                 let hasWrong = false;
                 
@@ -375,16 +393,16 @@
                         if (val[idx] === block.roma[i]) {
                             if (!hasWrong) {
                                 correctCount++;
-                                letterStatuses.push(true); // 這個字母打對，亮起
+                                letterStatuses.push("ok"); 
                             } else {
-                                letterStatuses.push(false);
+                                letterStatuses.push("wrong");
                             }
                         } else {
                             hasWrong = true;
-                            letterStatuses.push(false);
+                            letterStatuses.push("wrong");
                         }
                     } else {
-                        letterStatuses.push(false); // 還沒打到
+                        letterStatuses.push("none"); 
                     }
                 }
 
@@ -393,6 +411,7 @@
                 if (correctCount === block.roma.length) jpLitCount = block.jp.length;
 
                 let isCurrentBlock = val.length >= blockGlobalStart && val.length < blockGlobalEnd;
+                let isDoneBlock = val.length >= blockGlobalEnd;
 
                 html += `<span class="char-box ${isCurrentBlock ? 'current-word-hint' : ''}">`;
                 
@@ -405,12 +424,22 @@
                     }
                 }
                 
-                // 2. 核心改動：渲染上方的羅馬拼音（個別字母同步點亮）
-                if (isCurrentBlock && block.roma.trim() !== "") {
+                // 2. 羅馬拼音改為「常駐架構」，不論進度如何都撐著高度，解決畫面抖動
+                if (block.roma.trim() !== "") {
                     html += `<span class="roma-tip">`;
                     for (let i = 0; i < block.roma.length; i++) {
-                        let isLetterOk = letterStatuses[i];
-                        html += `<span class="roma-char ${isLetterOk ? 'roma-char-ok' : ''}">${block.roma[i]}</span>`;
+                        let status = letterStatuses[i];
+                        let cls = "roma-char";
+                        
+                        if (status === "ok") {
+                            cls += " roma-char-ok";
+                        } else if (isDoneBlock) {
+                            cls += " roma-char-done";
+                        } else if (isCurrentBlock) {
+                            cls += " roma-char-upcoming";
+                        }
+                        
+                        html += `<span class="${cls}">${block.roma[i]}</span>`;
                     }
                     html += `</span>`;
                 }
@@ -435,7 +464,7 @@
         document.getElementById('text-target').innerHTML = html;
         
         const curEl = document.querySelector('.current-word-hint') || document.getElementById('text-target');
-        const offset = val.length === 0 ? 0 : (curEl.offsetTop - 20);
+        const offset = val.length === 0 ? 0 : (curEl.offsetTop - 40);
         document.getElementById('scroll-engine').style.transform = `translateY(-${Math.max(0, offset)}px)`;
     }
 

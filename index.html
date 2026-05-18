@@ -70,8 +70,9 @@
         }
         .card.hidden { opacity: 0; transform: translateX(20px); }
 
-        #text-target { white-space: pre-wrap; color: rgba(255,255,255,0.15); position: relative; font-size: 32px; line-height: 2.2; font-weight: 500; letter-spacing: 2px; }
+        #text-target { white-space: pre-wrap; color: rgba(255,255,255,0.15); position: relative; font-size: 32px; line-height: 2.5; font-weight: 500; letter-spacing: 2px; }
         
+        /* 點亮時的填滿顏色效果 */
         .char-ok { 
             color: #fff; 
             text-shadow: 0 0 10px var(--glitch-blue);
@@ -79,8 +80,9 @@
         }
         .char-no { color: var(--accent); background: rgba(255,118,117,0.2); border-radius: 4px; }
         
+        /* 當前正在打的字組提示下底線 */
         .current-word-hint {
-            border-bottom: 2px solid rgba(116, 185, 255, 0.4);
+            border-bottom: 2px solid rgba(116, 185, 255, 0.5);
         }
 
         .cursor { 
@@ -93,20 +95,37 @@
         }
         @keyframes blink { 50% { opacity: 0; } }
 
+        /* 羅馬拼音浮動小提示容器 */
         .roma-tip {
             position: absolute;
             font-size: 14px;
-            color: #888;
             top: -24px;
             left: 50%;
             transform: translateX(-50%);
             white-space: nowrap;
             font-family: monospace;
-            letter-spacing: 0px;
+            letter-spacing: 1px;
+            display: flex;
+            gap: 1px;
         }
+        
+        /* 單個羅馬字母的樣式 */
+        .roma-char {
+            color: #666; /* 預設未輸入的灰色 */
+            transition: color 0.1s ease;
+        }
+        
+        /* 打對的羅馬字母點亮樣式 */
+        .roma-char-ok {
+            color: #fff;
+            text-shadow: 0 0 5px var(--glitch-blue);
+            font-weight: bold;
+        }
+
         .char-box {
             position: relative;
             display: inline-block;
+            margin-top: 15px; /* 給上方的羅馬字留點空間 */
         }
 
         #invisible-input { position: fixed; top: -100px; opacity: 0; }
@@ -156,12 +175,10 @@
             mainPlaylist["song2"] = songData["song2"];
         }
 
-        // 完整版歌詞配置 (結構優化)
         mainPlaylist["mumei"] = {
             "title": "ムメイ (Mumei)",
             "isJapanese": true,
             "lyrics": [
-                // 段落 1
                 "wasu re te shi matta koto dake o oboe te iru",
                 "pokari to aita ana no saki de kimi to de a tta",
                 "na mae mo kao mo waka ra nai kimi",
@@ -171,7 +188,6 @@
                 "sekai a a a a a ai no doko ga ni iru kimi no tame",
                 "ima a a a a a i ki tei ru yo boku ra mumei no mama",
                 "mumei no mama",
-                // 段落 2
                 "tato e ba kore ga utsu shi da sare ta mabo roshi demo",
                 "tashi ka ni kan ji ru ima kimi ga soko ni iru koto",
                 "na mae mo kao mo waka ra nai kimi",
@@ -181,7 +197,6 @@
                 "sekai a a a a a ai no doko ga ni iru kimi wa doko",
                 "ima a a a a a koko ni iru yo",
                 "atashi mumei",
-                // 段落 3
                 "atari wa ichi men ma kura na sekai",
                 "ma saka sama ni ochi te i ku",
                 "mumei daka ra kono sekai ni wa",
@@ -194,40 +209,36 @@
                 "ima a a a a a i ki te iku yo atashi mumei no mama"
             ],
             "displayLyrics": [
-                // 段落 1
                 "忘 れ て し まった こと だけ を 覚え て いる",
-                "ぽかり と 空いた 穴 の 先 で 君 と 出会った",
+                "ぽかり と 空いた 穴 の 先 で 君 と 出會った",
                 "名 前 も 顔 も わか ら ない 君",
-                "なん だか 懐 か し い ような 気が し た",
+                "なん だ加 懐 か し い ような 気が し た",
                 "互 い に 穴 埋めて いく ように",
                 "ふさ げ あって 笑 い あって",
                 "世界 a a a a a ai の どこ か に いる 君 の ため",
-                "今 a a a a a i き てい る よ 僕 ら 無名 の まま",
+                "今 a a a a a i き てい る yo 僕 ら 無名 の まま",
                 "無名 の まま",
-                // 段落 2
-                "たと え ば これ が 映 し 出 させ た 幻 でも",
+                "たと え 葉 これ 賀 映 し 出 させ た 幻 でも",
                 "確 か に 感 じ る 今 君 が そこ に いる こと",
-                "名 前 も 顔 も わか ら ない 君",
+                "名 前 も 顔 も わ加 ら ない 君",
                 "さよ なら し て しま え ば は 終わり だ",
                 "君 が いな きゃ 穴 は 大き く なる",
                 "構 わな い さ すぐ 見つ か る",
-                "世界 a a a a a ai の 邊 か に いる 君 は どこ",
+                "世界 a a a a a ai の どこ か に いる 君 は どこ",
                 "今 a a a a a ここ に いる よ",
                 "私 ── 無名",
-                // 段落 3
                 "あたり は 一面 真っ暗 な 世界",
                 "真っ 逆 さま に 落ち て い く",
-                "無名 だから この 世界 に は",
+                "無名 だ加ら この 世界 に は",
                 "忘 れ られ 消え ちゃう の",
                 "それ でも 君 が 求め る の なら",
                 "この 胸 に 空いた 穴 に 今",
                 "君 から 私 へ 風 は 通り抜け",
                 "一羽 の 鳥 が 今 君 の 元 へ と 行く",
-                "世界 a a a a a ai の どこ か に いる 君 の ため",
+                "世界 a a a a a ai の 邊 か に いる 君 の ため",
                 "今 a a a a a i き て いく よ 私 無名 の まま"
             ],
             "translations": [
-                // 段落 1
                 "僅僅只記得那些早已忘卻的事物",
                 "在破裂的空洞的那端和你相遇了",
                 "無論是你的名字還是臉龐全都不清楚",
@@ -237,7 +248,6 @@
                 "為了存在於世界之中某處的你",
                 "現在依然活著的我們始終無名",
                 "始終無名",
-                // 段落 2
                 "若是說這些都是映照出來的幻象也沒關係",
                 "我仍能確實地感受到 你此刻就在那裡的事實",
                 "對著無論名字還是臉龐都不清楚的你",
@@ -247,7 +257,6 @@
                 "存在於世界之中某處的你在哪裡呢",
                 "我現在就在這裡喔",
                 "作為 ”無名”",
-                // 段落 3
                 "身邊是一片漆黑無光的世界",
                 "直直地朝著深淵下墜落",
                 "因為無名而被這個世界",
@@ -355,16 +364,27 @@
                 const blockGlobalStart = globalRomaCursor + block.lineStart;
                 const blockGlobalEnd = globalRomaCursor + block.lineEnd;
                 
+                // 追蹤個別字母的對錯狀態
+                let letterStatuses = []; // 儲存每個字母是否亮起
                 let correctCount = 0;
                 let hasWrong = false;
+                
                 for (let i = 0; i < block.roma.length; i++) {
                     let idx = blockGlobalStart + i;
                     if (idx < val.length) {
                         if (val[idx] === block.roma[i]) {
-                            if (!hasWrong) correctCount++;
+                            if (!hasWrong) {
+                                correctCount++;
+                                letterStatuses.push(true); // 這個字母打對，亮起
+                            } else {
+                                letterStatuses.push(false);
+                            }
                         } else {
                             hasWrong = true;
+                            letterStatuses.push(false);
                         }
+                    } else {
+                        letterStatuses.push(false); // 還沒打到
                     }
                 }
 
@@ -376,6 +396,7 @@
 
                 html += `<span class="char-box ${isCurrentBlock ? 'current-word-hint' : ''}">`;
                 
+                // 1. 渲染日文字本體
                 for (let j = 0; j < block.jp.length; j++) {
                     if (j < jpLitCount) {
                         html += `<span class="char-ok">${block.jp[j]}</span>`;
@@ -384,8 +405,14 @@
                     }
                 }
                 
+                // 2. 核心改動：渲染上方的羅馬拼音（個別字母同步點亮）
                 if (isCurrentBlock && block.roma.trim() !== "") {
-                    html += `<span class="roma-tip">${block.roma}</span>`;
+                    html += `<span class="roma-tip">`;
+                    for (let i = 0; i < block.roma.length; i++) {
+                        let isLetterOk = letterStatuses[i];
+                        html += `<span class="roma-char ${isLetterOk ? 'roma-char-ok' : ''}">${block.roma[i]}</span>`;
+                    }
+                    html += `</span>`;
                 }
                 
                 html += `</span>`;

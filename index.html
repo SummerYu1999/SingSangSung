@@ -72,7 +72,6 @@
 
         #text-target { white-space: pre-wrap; color: rgba(255,255,255,0.15); position: relative; font-size: 32px; line-height: 2.2; font-weight: 500; letter-spacing: 2px; }
         
-        /* 點亮時的填滿顏色效果 */
         .char-ok { 
             color: #fff; 
             text-shadow: 0 0 10px var(--glitch-blue);
@@ -80,7 +79,6 @@
         }
         .char-no { color: var(--accent); background: rgba(255,118,117,0.2); border-radius: 4px; }
         
-        /* 當前正在打的字組提示（淡淡的下底線，讓玩家知道要打什麼羅馬拼音） */
         .current-word-hint {
             border-bottom: 2px solid rgba(116, 185, 255, 0.4);
         }
@@ -95,7 +93,6 @@
         }
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* 羅馬拼音浮動小提示（選配，在字上方貼心顯示現在要打什麼字母） */
         .roma-tip {
             position: absolute;
             font-size: 14px;
@@ -151,8 +148,6 @@
     <script>
     let mainPlaylist = {};
     let current = null, isMapMode = false;
-    
-    // 全域比對對照表
     let processedLines = []; 
     let totalTargetLength = 0;
 
@@ -161,11 +156,12 @@
             mainPlaylist["song2"] = songData["song2"];
         }
 
-        // 完美的 mumei 資料配置
+        // 完整版歌詞配置 (結構優化)
         mainPlaylist["mumei"] = {
             "title": "ムメイ (Mumei)",
-            "isJapanese": true, // 標記為日文模式
+            "isJapanese": true,
             "lyrics": [
+                // 段落 1
                 "wasu re te shi matta koto dake o oboe te iru",
                 "pokari to aita ana no saki de kimi to de a tta",
                 "na mae mo kao mo waka ra nai kimi",
@@ -173,19 +169,65 @@
                 "taga i na ana ume tei ku you ni",
                 "fusa ge atte wara i atte",
                 "sekai a a a a a ai no doko ga ni iru kimi no tame",
-                "ima a a a a a i ki tei ru yo boku ra mumei no mama"
+                "ima a a a a a i ki tei ru yo boku ra mumei no mama",
+                "mumei no mama",
+                // 段落 2
+                "tato e ba kore ga utsu shi da sare ta mabo roshi demo",
+                "tashi ka ni kan ji ru ima kimi ga soko ni iru koto",
+                "na mae mo kao mo waka ra nai kimi",
+                "sayo nara shi te shi mae ba wa owari da",
+                "kimi ga ina kya ana wa ooki ku naru",
+                "kawa ra nai sa sugu mitsu ka ru",
+                "sekai a a a a a ai no doko ga ni iru kimi wa doko",
+                "ima a a a a a koko ni iru yo",
+                "atashi mumei",
+                // 段落 3
+                "atari wa ichi men ma kura na sekai",
+                "ma saka sama ni ochi te i ku",
+                "mumei daka ra kono sekai ni wa",
+                "wasu re rare kie chau no",
+                "sore demo kimi ga moto me ru no nara",
+                "kono mune ni aita ana ni ima",
+                "kimi kara atashi he kaze wa toori meke",
+                "ichiwa no tori ga ima kimi no moto he to iku",
+                "sekai a a a a a ai no doko ga ni iru kimi no tame",
+                "ima a a a a a i ki te iku yo atashi mumei no mama"
             ],
             "displayLyrics": [
-                "忘 れ て し まった こと だけ を 覚え て いる", // 這裡貼心地用空格把字分開，以便程式 1:1 完美捕捉！
+                // 段落 1
+                "忘 れ て し まった こと だけ を 覚え て いる",
                 "ぽかり と 空いた 穴 の 先 で 君 と 出会った",
-                "名前 も 顔 も わから ない 君",
-                "なんだか 懐かしい ような 気が した",
-                "互い に 穴 埋めて いく ように",
-                "ふさげあって 笑いあって",
-                "世界 a a a a a ai の どこか に いる 君 の ため",
-                "今 a a a a a i きて いる よ 僕ら 無名 の まま"
+                "名 前 も 顔 も わか ら ない 君",
+                "なん だか 懐 か し い ような 気が し た",
+                "互 い に 穴 埋めて いく ように",
+                "ふさ げ あって 笑 い あって",
+                "世界 a a a a a ai の どこ か に いる 君 の ため",
+                "今 a a a a a i き てい る よ 僕 ら 無名 の まま",
+                "無名 の まま",
+                // 段落 2
+                "たと え ば これ が 映 し 出 させ た 幻 でも",
+                "確 か に 感 じ る 今 君 が そこ に いる こと",
+                "名 前 も 顔 も わか ら ない 君",
+                "さよ なら し て しま え ば は 終わり だ",
+                "君 が いな きゃ 穴 は 大き く なる",
+                "構 わな い さ すぐ 見つ か る",
+                "世界 a a a a a ai の 邊 か に いる 君 は どこ",
+                "今 a a a a a ここ に いる よ",
+                "私 ── 無名",
+                // 段落 3
+                "あたり は 一面 真っ暗 な 世界",
+                "真っ 逆 さま に 落ち て い く",
+                "無名 だから この 世界 に は",
+                "忘 れ られ 消え ちゃう の",
+                "それ でも 君 が 求め る の なら",
+                "この 胸 に 空いた 穴 に 今",
+                "君 から 私 へ 風 は 通り抜け",
+                "一羽 の 鳥 が 今 君 の 元 へ と 行く",
+                "世界 a a a a a ai の どこ か に いる 君 の ため",
+                "今 a a a a a i き て いく よ 私 無名 の まま"
             ],
             "translations": [
+                // 段落 1
                 "僅僅只記得那些早已忘卻的事物",
                 "在破裂的空洞的那端和你相遇了",
                 "無論是你的名字還是臉龐全都不清楚",
@@ -193,11 +235,36 @@
                 "像是互相填補對方的空洞一般",
                 "共同嬉鬧 共同歡笑",
                 "為了存在於世界之中某處的你",
-                "現在依然活著的我們始終無名"
+                "現在依然活著的我們始終無名",
+                "始終無名",
+                // 段落 2
+                "若是說這些都是映照出來的幻象也沒關係",
+                "我仍能確實地感受到 你此刻就在那裡的事實",
+                "對著無論名字還是臉龐都不清楚的你",
+                "說出「再見」的話一切就會結束了吧",
+                "沒有你的話空洞將會變得越來越大",
+                "不過沒關係的 我很快就會找到你",
+                "存在於世界之中某處的你在哪裡呢",
+                "我現在就在這裡喔",
+                "作為 ”無名”",
+                // 段落 3
+                "身邊是一片漆黑無光的世界",
+                "直直地朝著深淵下墜落",
+                "因為無名而被這個世界",
+                "逐漸遺忘 逐漸消失",
+                "即便如此如果你依然渴望著的話",
+                "現在從我內心的空洞之中",
+                "乘著由我向你吹來的那股風",
+                "一隻小鳥將會向著你的方向飛去",
+                "為了身處於世界之中某處的你",
+                "如今我將繼續活下去 始終作為 ”無名”"
             ],
             "vocab": [
                 { "word": "wasu re te", "index": 0, "k": "忘れて", "n": "忘記" },
-                { "word": "na mae", "index": 2, "k": "名前", n: "名字" }
+                { "word": "na mae", "index": 2, "k": "名前", "n": "名字" },
+                { "word": "mabo roshi", "index": 9, "k": "幻", "n": "幻影；幻象" },
+                { "word": "sekai", "index": 18, "k": "世界", "n": "世界" },
+                { "word": "ichiwa", "index": 25, "k": "一羽", "n": "一隻（量詞，用於鳥類）" }
             ]
         };
     });
@@ -217,12 +284,10 @@
             document.body.classList.remove('this-is-me-bg');
         }
 
-        // 初始化對照對應表
         processedLines = [];
         totalTargetLength = 0;
         
         if (isMapMode) {
-            // 日文結構化對齊處理
             for (let l = 0; l < current.lyrics.length; l++) {
                 const romaWords = current.lyrics[l].split(' ');
                 const jpWords = current.displayLyrics[l].split(' ');
@@ -247,7 +312,6 @@
                 totalTargetLength += lineObj.romaStr.length;
             }
         } else {
-            // 英文模式：回復原本普通模式
             current.lyrics.forEach(line => {
                 processedLines.push({ romaStr: line + "\n" });
                 totalTargetLength += line.length + 1;
@@ -271,7 +335,6 @@
         let globalRomaCursor = 0;
 
         if (!isMapMode) {
-            // --- 英文模式（This is me）維持原廠設定 ---
             let fullTarget = processedLines.map(p => p.romaStr).join('');
             for (let i = 0; i < fullTarget.length; i++) {
                 let cls = "";
@@ -284,7 +347,6 @@
             return;
         }
 
-        // --- 日文特殊連動模式 ---
         for (let l = 0; l < processedLines.length; l++) {
             const line = processedLines[l];
             
@@ -293,7 +355,6 @@
                 const blockGlobalStart = globalRomaCursor + block.lineStart;
                 const blockGlobalEnd = globalRomaCursor + block.lineEnd;
                 
-                // 算玩家在這個字組裡打對了幾個字
                 let correctCount = 0;
                 let hasWrong = false;
                 for (let i = 0; i < block.roma.length; i++) {
@@ -307,17 +368,14 @@
                     }
                 }
 
-                // 計算這個字組點亮的假名/漢字比例
                 let ratio = block.roma.length > 0 ? correctCount / block.roma.length : 0;
                 let jpLitCount = Math.floor(block.jp.length * ratio);
-                if (correctCount === block.roma.length) jpLitCount = block.jp.length; // 全對就全開
+                if (correctCount === block.roma.length) jpLitCount = block.jp.length;
 
-                // 是否正在輸入這個字組
                 let isCurrentBlock = val.length >= blockGlobalStart && val.length < blockGlobalEnd;
 
                 html += `<span class="char-box ${isCurrentBlock ? 'current-word-hint' : ''}">`;
                 
-                // 渲染日文字：一部份變亮（填滿顏色），一部份維持灰色
                 for (let j = 0; j < block.jp.length; j++) {
                     if (j < jpLitCount) {
                         html += `<span class="char-ok">${block.jp[j]}</span>`;
@@ -326,22 +384,14 @@
                     }
                 }
                 
-                // 貼心提示：如果是目前正在打的字，在上面淡淡顯示羅馬拼音提示
                 if (isCurrentBlock && block.roma.trim() !== "") {
                     html += `<span class="roma-tip">${block.roma}</span>`;
                 }
-
-                if (val.length - 1 >= blockGlobalStart && val.length - 1 < blockGlobalEnd && (val.length - 1 === blockGlobalStart + correctCount - 1 || val.length === blockGlobalEnd - 1)) {
-                    // 游標放置邏輯
-                }
                 
                 html += `</span>`;
-                
-                // 空格渲染
                 if (m < line.mapArr.length - 1) html += " ";
             }
 
-            // 換行時補上游標檢測
             if (val.length === globalRomaCursor + line.romaStr.length - 1) {
                 html += `<span class="cursor"></span>`;
             }
@@ -352,22 +402,27 @@
         if (val.length === 0) {
             html = `<span class="cursor"></span>` + html;
         } else {
-            // 在末尾或中間補上游標
             html = html.replace(/<\/span>$/, `</span><span class="cursor"></span>`);
         }
 
         document.getElementById('text-target').innerHTML = html;
         
-        // 滾動引擎滾動
         const curEl = document.querySelector('.current-word-hint') || document.getElementById('text-target');
         const offset = val.length === 0 ? 0 : (curEl.offsetTop - 20);
         document.getElementById('scroll-engine').style.transform = `translateY(-${Math.max(0, offset)}px)`;
     }
 
+    function getPos(lineIdx, word) {
+        let pos = 0;
+        for(let i=0; i<lineIdx; i++) pos += (current.lyrics[i] ? current.lyrics[i].length + 1 : 0);
+        const lineText = current.lyrics[lineIdx];
+        const wordIdx = lineText ? lineText.indexOf(word) : -1;
+        return wordIdx !== -1 ? pos + wordIdx : pos;
+    }
+
     function updateStats() {
         const val = document.getElementById('invisible-input').value;
         
-        // 算出目前在哪一行
         let accumulated = 0;
         let lineIdx = 0;
         for (let i = 0; i < processedLines.length; i++) {
@@ -381,14 +436,39 @@
 
         document.getElementById('trans-hint').innerText = current.translations[lineIdx] || "";
         
-        // 計算精準度
         let fullTarget = processedLines.map(p => p.romaStr).join('');
         let correct = 0;
         for(let i=0; i<val.length; i++) if(val[i] === fullTarget[i]) correct++;
         const percent = val.length > 0 ? Math.floor((correct / val.length) * 100) : 0;
         document.getElementById('stat-display').innerText = `Combo: ${val.length} | ${percent}%`;
-    }
+        
+        const vocabCard = document.getElementById('card-vocab');
+        if (!current.vocab || current.vocab.length === 0) {
+            vocabCard.classList.add('hidden');
+            return;
+        }
 
+        const targetVocab = current.vocab.find(v => {
+            const start = getPos(v.index, v.word);
+            return val.length >= (start - 5) && val.length <= (start + v.word.length);
+        });
+        if (targetVocab) {
+            vocabCard.classList.remove('hidden');
+            document.getElementById('vocab-hint').innerHTML = `
+                <div style="color:var(--highlight); font-size:12px; font-weight:bold; margin-bottom:4px;">KEY VOCAB</div>
+                <b style="font-size:24px; color:var(--primary)">${targetVocab.word}</b> 
+                <div style="color:#aaa; font-size:14px; margin:4px 0;">${targetVocab.k}</div>
+                <div style="font-size:18px; color:#fff;">${targetVocab.n}</div>`;
+        } else {
+            const nextVocab = current.vocab.find(v => getPos(v.index, v.word) > val.length);
+            if (nextVocab) {
+                vocabCard.classList.remove('hidden');
+                document.getElementById('vocab-hint').innerHTML = `<div style="color:#666; font-size:12px;">UPCOMING</div><b style="color:#888; font-size:18px;">${nextVocab.word}</b>`;
+            } else {
+                vocabCard.classList.add('hidden');
+            }
+        }
+    }
     function changeTheme(color) {
         document.documentElement.style.setProperty('--primary', color);
     }

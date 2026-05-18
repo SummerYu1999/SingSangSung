@@ -1,10 +1,10 @@
-// mumei 檔案的完整內容
-var songData = songData || {};
-
-songData['mumei'] = {
-    title: "ムメイ (Mumei)",
-    // 這是你要打的字（保持羅馬拼音）
-    lyrics: [
+// mumei 檔案的完整內容（不要宣告變數，直接塞進 songData 物件）
+songData["mumei"] = {
+    "title": "ムメイ (Mumei)",
+    "customEmojis": [
+        "🌌", "🦋", "🕳️"
+    ],
+    "lyrics": [
         "wasu re te shi matta koto dake o oboe te iru",
         "pokari to aita ana no saki de kimi to de a tta",
         "na mae mo kao mo waka ra nai kimi",
@@ -14,8 +14,7 @@ songData['mumei'] = {
         "sekai a a a a a ai no doko ga ni iru kimi no tame",
         "ima a a a a a i ki tei ru yo boku ra mumei no mama"
     ],
-    // 讓畫面顯示跟上面完全一樣的字，確保 100% 順暢運行
-    displayLyrics: [
+    "displayLyrics": [
         "wasu re te shi matta koto dake o oboe te iru",
         "pokari to aita ana no saki de kimi to de a tta",
         "na mae mo kao mo waka ra nai kimi",
@@ -25,8 +24,7 @@ songData['mumei'] = {
         "sekai a a a a a ai no doko ga ni iru kimi no tame",
         "ima a a a a a i ki tei ru yo boku ra mumei no mama"
     ],
-    // 把日文原本的漢字歌詞，直接融合到翻譯欄位，這樣玩家在打羅馬拼音時，一眼就能看到日文跟中文翻譯！
-    translations: [
+    "translations": [
         "【忘れてしまったことだけを覚えている】\n僅僅只記得那些早已忘卻的事物",
         "【ぽかりと空いた穴の先で君と出会った】\n在破裂的空洞的那端和你相遇了",
         "【名前も顔もわからない君】\n無論是你的名字還是臉龐全都不清楚",
@@ -36,10 +34,9 @@ songData['mumei'] = {
         "【世界（Ahh*6）のどこがにいる君のため】\n為了存在於世界之中某處的你",
         "【今（Ahh*5）生きているよ　僕ら無名のまま】\n現在依然活著的我們始終無名"
     ],
-    vocab: [
-        { index: 0, word: "wasu re te", k: "忘れて", n: "忘記" },
-        { index: 2, word: "na mae", k: "名前", n: "名字" }
+    "vocab": [
+        { "word": "wasu re te", "index": 0, "k": "忘れて", "n": "忘記" },
+        { "word": "na mae", "index": 2, "k": "名前", n: "名字" }
     ],
-    customEmojis: [],
-    backingVocals: []
+    "backingVocals": []
 };

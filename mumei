@@ -1,42 +1,80 @@
-// mumei 檔案的完整內容（不要宣告變數，直接塞進 songData 物件）
-songData["mumei"] = {
-    "title": "ムメイ (Mumei)",
-    "customEmojis": [
-        "🌌", "🦋", "🕳️"
-    ],
-    "lyrics": [
-        "wasu re te shi matta koto dake o oboe te iru",
-        "pokari to aita ana no saki de kimi to de a tta",
-        "na mae mo kao mo waka ra nai kimi",
-        "nan daka natsu ka shi i youna kiga shi ta",
-        "taga i na ana ume tei ku you ni",
-        "fusa ge atte wara i atte",
-        "sekai a a a a a ai no doko ga ni iru kimi no tame",
-        "ima a a a a a i ki tei ru yo boku ra mumei no mama"
-    ],
-    "displayLyrics": [
-        "wasu re te shi matta koto dake o oboe te iru",
-        "pokari to aita ana no saki de kimi to de a tta",
-        "na mae mo kao mo waka ra nai kimi",
-        "nan daka natsu ka shi i youna kiga shi ta",
-        "taga i na ana ume tei ku you ni",
-        "fusa ge atte wara i atte",
-        "sekai a a a a a ai no doko ga ni iru kimi no tame",
-        "ima a a a a a i ki tei ru yo boku ra mumei no mama"
-    ],
-    "translations": [
-        "【忘れてしまったことだけを覚えている】\n僅僅只記得那些早已忘卻的事物",
-        "【ぽかりと空いた穴の先で君と出会った】\n在破裂的空洞的那端和你相遇了",
-        "【名前も顔もわからない君】\n無論是你的名字還是臉龐全都不清楚",
-        "【なんだか懐かしいような気がした】\n卻不知為何令人有了似曾相似的感覺",
-        "【互いに穴埋めていくように】\n像是互相填補對方的空洞一般",
-        "【ふさげあって　笑いあって】\n共同嬉鬧 共同歡笑",
-        "【世界（Ahh*6）のどこがにいる君のため】\n為了存在於世界之中某處的你",
-        "【今（Ahh*5）生きているよ　僕ら無名のまま】\n現在依然活著的我們始終無名"
-    ],
-    "vocab": [
-        { "word": "wasu re te", "index": 0, "k": "忘れて", "n": "忘記" },
-        { "word": "na mae", "index": 2, "k": "名前", n: "名字" }
-    ],
-    "backingVocals": []
+Python 3.14.2 (tags/v3.14.2:df79316, Dec  5 2025, 17:18:21) [MSC v.1944 64 bit (AMD64)] on win32
+Enter "help" below or click "Help" above for more information.
+const songData = {
+    "song1": {
+        "title": "ムメイ (Mumei)",
+        // --- 1. 這首歌專屬的 Emoji 庫 ---
+        "customEmojis": [
+            "✨", "💫", "⭐", "🌟", "🎇", "🎆", "🌠", "🔮", "💎", "💍", "🧿", "🪄",
+            "🎪", "🎭", "🎩", "🎬", "🎤", "🎸", "🎻", "🎷", "🎹", "🥁", "🎨", "🎟️", "🏮", "🕯️",
+            "🎊", "🎉", "🎈", "🌈", "🔥", "💥", "⚡", "☀️", "🌅", "🏙️", "🎡", "🎢", "🎠",
+            "🦁", "🦋", "🦅", "🕊️", "🐉", "🦄", "🐾", "💪", "✊", "❤️", "🚩", "🛡️", "⚔️", "🔱",
+            "💃", "🕺", "🕴️", "👣", "👠", "👑", "👔", "🎭", "📢", "🔊", "🎶", "🎵",
+            "🌀", "💠", "💮", "🌺", "🌻", "🌊", "🌬️", "🫧", "⚜️", "💯", "🚀", "🛸"
+        ],
+        // --- 2. 歌詞本體 ---
+        "lyrics": [
+            "i am not a stranger to the dark", "hide away they say", "cause we dont want your broken parts",
+            "ive learned to be ashamed of all my scars", "run away they say", "no onell love you as you are",
+            "but i wont let them break me down to dust", "i know that theres a place for us", "for we are glorious",
+            "when the sharpest words wanna cut me down", "im gonna send a flood gonna drown em out",
+            "i am brave i am bruised", "i am who im meant to be this is me", "look out cause here i come",
+            "and im marching on to the beat i drum", "im not scared to be seen", "i make no apologies this is me",
+            "another round of bullets hits my skin", "well fire away cause today i wont let the shame sink in",
+            "we are bursting through the barricades and", "reaching for the sun we are warriors",
+            "yeah thats what weve become", "i wont let them break me down to dust",
+            "i know that theres a place for us", "for we are glorious",
+            "when the sharpest words wanna cut me down", "im gonna send a flood gonna drown em out",
+            "i am brave i am bruised", "i am who im meant to be this is me",
+            "look out cause here i come", "and im marching on to the beat i drum",
+            "im not scared to be seen", "i make no apologies this is me",
+            "this is me", "and i know that i deserve your love", "there is nothing im not worthy of",
+            "when the sharpest words wanna cut me down", "im gonna send a flood gonna drown em out",
+            "this is brave this is bruised", "this is who im meant to be this is me",
+            "look out cause here i come", "and im marching on to the beat i drum",
+            "im not scared to be seen", "i make no apologies this is me",
+            "whenever the words wanna cut me down", "ill send a flood to drown em out",
+            "im gonna send a flood", "gonna drown them em out", "this is me"
+        ],
+        // --- 3. 翻譯本體 ---
+        "translations": [
+            "我對於黑暗來說並非陌生人", "他們說：躲起來吧", "因為我們不要殘破的你",
+            "我曾學會為這滿身瘡痍感到羞恥", "他們說：跑走吧", "沒有人會愛真實的你",
+            "但我不會讓他們將我碾作塵埃", "我知道一定有個地方屬於我們", "因為我們是星光璀璨的",
+            "當那些銳利的言語要砍向我時", "我將掀起狂潮把全部悉數吞噬",
+            "我雖滿身傷痕，卻依然無畏", "我就是我注定該成為的樣貌，這就是我", "當心我要來了",
+            "我隨著我的鼓點勇往直前", "我不害怕被看見", "無需任何歉意，這就是我",
+            "另一輪的槍林彈雨朝我襲來", "儘管開火吧，今天我不會讓這些羞辱侵蝕我", "我們正衝破層層阻礙",
+            "奔向暖陽，我們是戰士", "是的，這就是我們蛻變後的模樣",
+            "但我不會讓他們將我碾作塵埃", "我知道一定有個地方屬於我們", "因為我們是星光璀璨的",
+            "當那些銳利的言語要砍向我時", "我將掀起狂潮把全部悉數吞噬",
+            "我雖滿身傷痕，卻依然無畏", "我就是我注定該成為的樣貌，這就是我",
+            "當心我要來了", "我隨著我的鼓點勇往直前", "我不害怕被看見", "無需任何歉意，這就是我",
+            "這就是我", "我深知自己值得被愛", "沒有任何東西是我不配得的",
+            "當那些銳利的言語要砍向我時", "我將掀起狂潮把全部悉數吞噬",
+            "這份勇敢，這份傷痕", "這就是我注定該成為的樣貌，這就是我",
+            "當心我要來了", "我隨著我的鼓點勇往直前", "我不害怕被看見", "無需任何歉意，這就是我",
+            "每當那些言語要砍向我時", "我將掀起狂潮將其吞噬", "我將掀起狂潮", "悉數吞噬", "這就是我"
+        ],
+        // --- 4. 單字與合聲 ---
+        "vocab": [
+            { "word": "stranger", "index": 0, "k": "[ˈstrendʒɚ]", "n": "陌生人" },
+            { "word": "ashamed", "index": 3, "k": "[əˈʃemd]", "n": "感到羞愧的" },
+            { "word": "scars", "index": 3, "k": "[skɑrz]", "n": "疤痕；創傷" },
+            { "word": "glorious", "index": 8, "k": "[ˈɡloriəs]", "n": "星光璀璨的" },
+            { "word": "sharpest", "index": 9, "k": "[ˈʃɑrpɪst]", "n": "最尖銳的" },
+            { "word": "bruised", "index": 11, "k": "[bruzd]", "n": "受傷的；瘀青的" },
+            { "word": "marching", "index": 14, "k": "[ˈmɑrtʃɪŋ]", "n": "勇往直前" },
+            { "word": "apologies", "index": 16, "k": "[əˈpɑlədʒiz]", "n": "歉意" },
+            { "word": "barricades", "index": 19, "k": "[ˌbærɪˈkedz]", "n": "阻礙；障礙物" },
+            { "word": "warriors", "index": 20, "k": "[ˈwɔriɚz]", "n": "戰士；勇士" },
+            { "word": "deserve", "index": 34, "k": "[dɪˈzɝv]", "n": "應得；值得" },
+            { "word": "worthy", "index": 35, "k": "[ˈwɝði]", "n": "配得上...的" }
+        ],
+        "backingVocals": [
+            { "trigger": "out", "index": 47, "text": "oh-oh-oh!" },
+            { "trigger": "down", "index": 44, "text": "oh-oh-oh-oh" },
+            { "trigger": "me", "index": 16, "text": "Oh-oh-oh-oh!" }
+        ]
+    }
 };

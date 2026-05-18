@@ -25,10 +25,8 @@
             display: flex; 
             flex-direction: column; 
             height: 100vh;
-            transition: background 0.8s ease;
         }
-
-        /* 專屬背景樣式 */
+        
         body.this-is-me-bg {
             background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
                         url('https://i.guim.co.uk/img/media/69c18167301f85e8c94ca627f9d0cec61c4edef9/339_141_1331_799/master/1331.jpg?width=1200&dpr=1&s=none&crop=none');
@@ -48,7 +46,6 @@
             max-width: 1400px; 
             margin: 0 auto; 
             width: 100%; 
-            position: relative;
         }
 
         .practice-window { 
@@ -70,38 +67,50 @@
             border-radius: 14px; 
             border-left: 5px solid var(--primary); 
             box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
         }
         .card.hidden { opacity: 0; transform: translateX(20px); }
 
-        #text-target { white-space: pre-wrap; color: rgba(255,255,255,0.2); position: relative; font-size: 32px; line-height: 1.8; font-weight: 500; }
+        #text-target { white-space: pre-wrap; color: rgba(255,255,255,0.15); position: relative; font-size: 32px; line-height: 2.2; font-weight: 500; letter-spacing: 2px; }
         
-        /* 成功打字時的效果（微調成無害的藍光脈衝，不噴emoji） */
+        /* 點亮時的填滿顏色效果 */
         .char-ok { 
             color: #fff; 
             text-shadow: 0 0 10px var(--glitch-blue);
-            display: inline-block;
-            animation: text-pulse 0.15s ease-out;
+            font-weight: bold;
         }
-        @keyframes text-pulse {
-            0% { transform: scale(1.15); }
-            100% { transform: scale(1); }
-        }
-
         .char-no { color: var(--accent); background: rgba(255,118,117,0.2); border-radius: 4px; }
-        .hard-word { border-bottom: 2px dashed var(--highlight); color: #777; }
-        .hard-word.active { color: var(--highlight); text-shadow: 0 0 10px var(--highlight); }
+        
+        /* 當前正在打的字組提示（淡淡的下底線，讓玩家知道要打什麼羅馬拼音） */
+        .current-word-hint {
+            border-bottom: 2px solid rgba(116, 185, 255, 0.4);
+        }
 
         .cursor { 
-            border-left: 3px solid var(--primary); 
+            border-left: 3px solid var(--glitch-blue); 
             animation: blink 0.8s infinite; 
             display: inline-block; 
             height: 1.1em; 
             vertical-align: middle; 
             margin-left: 2px;
-            box-shadow: 0 0 10px var(--primary);
         }
         @keyframes blink { 50% { opacity: 0; } }
+
+        /* 羅馬拼音浮動小提示（選配，在字上方貼心顯示現在要打什麼字母） */
+        .roma-tip {
+            position: absolute;
+            font-size: 14px;
+            color: #888;
+            top: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-family: monospace;
+            letter-spacing: 0px;
+        }
+        .char-box {
+            position: relative;
+            display: inline-block;
+        }
 
         #invisible-input { position: fixed; top: -100px; opacity: 0; }
     </style>
@@ -140,23 +149,22 @@
     </div>
 
     <script>
-    // 這裡我們建立一個安全的主歌單物件
     let mainPlaylist = {};
-    let current = null, fullLyricsString = "", lineThresholds = [];
+    let current = null, isMapMode = false;
+    
+    // 全域比對對照表
+    let processedLines = []; 
+    let totalTargetLength = 0;
 
-    // 【核心修正】網頁載入時，自動去抓 This is me 裡面的 song2，並手動把 mumei 安全塞進去！
     window.addEventListener('DOMContentLoaded', () => {
-        // 抓取 This is me 檔案宣告的 song2
         if (typeof songData !== 'undefined' && songData["song2"]) {
             mainPlaylist["song2"] = songData["song2"];
-        } else if (typeof window.songData !== 'undefined' && window.songData["song2"]) {
-            mainPlaylist["song2"] = window.songData["song2"];
         }
 
-        // 直接在主程式綁定 mumei 歌詞，字數 1:1 對齊，杜絕任何外部檔案讀取失敗與變數衝突的問題！
+        // 完美的 mumei 資料配置
         mainPlaylist["mumei"] = {
             "title": "ムメイ (Mumei)",
-            "customEmojis": [],
+            "isJapanese": true, // 標記為日文模式
             "lyrics": [
                 "wasu re te shi matta koto dake o oboe te iru",
                 "pokari to aita ana no saki de kimi to de a tta",
@@ -167,34 +175,41 @@
                 "sekai a a a a a ai no doko ga ni iru kimi no tame",
                 "ima a a a a a i ki tei ru yo boku ra mumei no mama"
             ],
+            "displayLyrics": [
+                "忘 れ て し まった こと だけ を 覚え て いる", // 這裡貼心地用空格把字分開，以便程式 1:1 完美捕捉！
+                "ぽかり と 空いた 穴 の 先 で 君 と 出会った",
+                "名前 も 顔 も わから ない 君",
+                "なんだか 懐かしい ような 気が した",
+                "互い に 穴 埋めて いく ように",
+                "ふさげあって 笑いあって",
+                "世界 a a a a a ai の どこか に いる 君 の ため",
+                "今 a a a a a i きて いる よ 僕ら 無名 の まま"
+            ],
             "translations": [
-                "【忘れてしまったことだけを覚えている】\n僅僅只記得那些早已忘卻的事物",
-                "【ぽかりと空いた穴の先で君と出会った】\n在破裂的空洞的那端和你相遇了",
-                "【名前も顔もわからない君】\n無論是你的名字還是臉龐全都不清楚",
-                "【なんだか懐かしいような気がした】\n卻不知為何令人有了似曾相似的感覺",
-                "【互いに穴埋めていくように】\n像是互相填補對方的空洞一般",
-                "【ふさげあって　笑いあって】\n共同嬉鬧 共同歡笑",
-                "【世界（Ahh*6）のどこがにいる君のため】\n為了存在於世界之中某處的你",
-                "【今（Ahh*5）生きているよ　僕ら無名のまま】\n現在依然活著的我們始終無名"
+                "僅僅只記得那些早已忘卻的事物",
+                "在破裂的空洞的那端和你相遇了",
+                "無論是你的名字還是臉龐全都不清楚",
+                "卻不知為何令人有了似曾相似的感覺",
+                "像是互相填補對方的空洞一般",
+                "共同嬉鬧 共同歡笑",
+                "為了存在於世界之中某處的你",
+                "現在依然活著的我們始終無名"
             ],
             "vocab": [
                 { "word": "wasu re te", "index": 0, "k": "忘れて", "n": "忘記" },
                 { "word": "na mae", "index": 2, "k": "名前", n: "名字" }
-            ],
-            "backingVocals": []
+            ]
         };
     });
 
     function loadSong() {
         const key = document.getElementById('song-select').value;
-        
-        // 從我們建立的安全歌單中抓歌
-        if (mainPlaylist[key]) {
-            current = mainPlaylist[key];
-        } else {
+        if (!mainPlaylist[key]) {
             document.getElementById('game-view').style.display = 'none';
             return;
         }
+        current = mainPlaylist[key];
+        isMapMode = !!current.isJapanese;
 
         if (key === 'song2') {
             document.body.classList.add('this-is-me-bg');
@@ -202,14 +217,42 @@
             document.body.classList.remove('this-is-me-bg');
         }
 
-        fullLyricsString = "";
-        lineThresholds = [];
-        let currentCount = 0;
-        current.lyrics.forEach(line => {
-            fullLyricsString += line + "\n";
-            currentCount += line.length + 1;
-            lineThresholds.push(currentCount);
-        });
+        // 初始化對照對應表
+        processedLines = [];
+        totalTargetLength = 0;
+        
+        if (isMapMode) {
+            // 日文結構化對齊處理
+            for (let l = 0; l < current.lyrics.length; l++) {
+                const romaWords = current.lyrics[l].split(' ');
+                const jpWords = current.displayLyrics[l].split(' ');
+                
+                let lineObj = { romaStr: "", mapArr: [], rawJp: current.displayLyrics[l].replace(/ /g, "") };
+                let romaCursor = 0;
+                
+                for (let w = 0; w < romaWords.length; w++) {
+                    let rW = romaWords[w];
+                    let jW = jpWords[w] || "";
+                    
+                    lineObj.mapArr.push({
+                        roma: rW,
+                        jp: jW,
+                        lineStart: romaCursor,
+                        lineEnd: romaCursor + rW.length
+                    });
+                    lineObj.romaStr += rW + (w === romaWords.length - 1 ? "\n" : " ");
+                    romaCursor += rW.length + 1; 
+                }
+                processedLines.push(lineObj);
+                totalTargetLength += lineObj.romaStr.length;
+            }
+        } else {
+            // 英文模式：回復原本普通模式
+            current.lyrics.forEach(line => {
+                processedLines.push({ romaStr: line + "\n" });
+                totalTargetLength += line.length + 1;
+            });
+        }
 
         document.getElementById('invisible-input').value = "";
         document.getElementById('game-view').style.display = 'grid';
@@ -224,78 +267,128 @@
 
     function render() {
         const val = document.getElementById('invisible-input').value;
-        const target = fullLyricsString;
-
         let html = "";
-        const activeVocab = current.vocab ? current.vocab.map(v => ({...v, start: getPos(v.index, v.word)})) : [];
+        let globalRomaCursor = 0;
 
-        for (let i = 0; i < target.length; i++) {
-            const av = activeVocab.find(av => i >= av.start && i < av.start + av.word.length);
-            let cls = "";
-            if (i < val.length) cls = (val[i] === target[i] ? 'char-ok' : 'char-no');
-            
-            if (av) {
-                const isHitting = val.length >= av.start && val.length <= av.start + av.word.length;
-                html += `<span class="${cls} hard-word ${isHitting ? 'active' : ''}">${target[i]}</span>`;
-            } else {
-                html += `<span class="${cls}">${target[i]}</span>`;
+        if (!isMapMode) {
+            // --- 英文模式（This is me）維持原廠設定 ---
+            let fullTarget = processedLines.map(p => p.romaStr).join('');
+            for (let i = 0; i < fullTarget.length; i++) {
+                let cls = "";
+                if (i < val.length) cls = (val[i] === fullTarget[i] ? 'char-ok' : 'char-no');
+                html += `<span class="${cls}">${fullTarget[i]}</span>`;
+                if (i === val.length - 1) html += `<span class="cursor"></span>`;
             }
-            if (i === val.length - 1) html += `<span class="cursor"></span>`;
+            if (val.length === 0) html = `<span class="cursor"></span>` + fullTarget;
+            document.getElementById('text-target').innerHTML = html;
+            return;
         }
-        
-        if (val.length === 0) html = `<span class="cursor"></span>` + target;
-        document.getElementById('text-target').innerHTML = html;
-        const curEl = document.querySelector('.cursor') || document.getElementById('text-target');
-        const offset = val.length === 0 ? 0 : curEl.offsetTop;
-        document.getElementById('scroll-engine').style.transform = `translateY(-${offset}px)`;
-    }
 
-    function getPos(lineIdx, word) {
-        let pos = 0;
-        for(let i=0; i<lineIdx; i++) pos += (current.lyrics[i] ? current.lyrics[i].length + 1 : 0);
-        const lineText = current.lyrics[lineIdx];
-        const wordIdx = lineText ? lineText.indexOf(word) : -1;
-        return wordIdx !== -1 ? pos + wordIdx : pos;
+        // --- 日文特殊連動模式 ---
+        for (let l = 0; l < processedLines.length; l++) {
+            const line = processedLines[l];
+            
+            for (let m = 0; m < line.mapArr.length; m++) {
+                const block = line.mapArr[m];
+                const blockGlobalStart = globalRomaCursor + block.lineStart;
+                const blockGlobalEnd = globalRomaCursor + block.lineEnd;
+                
+                // 算玩家在這個字組裡打對了幾個字
+                let correctCount = 0;
+                let hasWrong = false;
+                for (let i = 0; i < block.roma.length; i++) {
+                    let idx = blockGlobalStart + i;
+                    if (idx < val.length) {
+                        if (val[idx] === block.roma[i]) {
+                            if (!hasWrong) correctCount++;
+                        } else {
+                            hasWrong = true;
+                        }
+                    }
+                }
+
+                // 計算這個字組點亮的假名/漢字比例
+                let ratio = block.roma.length > 0 ? correctCount / block.roma.length : 0;
+                let jpLitCount = Math.floor(block.jp.length * ratio);
+                if (correctCount === block.roma.length) jpLitCount = block.jp.length; // 全對就全開
+
+                // 是否正在輸入這個字組
+                let isCurrentBlock = val.length >= blockGlobalStart && val.length < blockGlobalEnd;
+
+                html += `<span class="char-box ${isCurrentBlock ? 'current-word-hint' : ''}">`;
+                
+                // 渲染日文字：一部份變亮（填滿顏色），一部份維持灰色
+                for (let j = 0; j < block.jp.length; j++) {
+                    if (j < jpLitCount) {
+                        html += `<span class="char-ok">${block.jp[j]}</span>`;
+                    } else {
+                        html += `<span>${block.jp[j]}</span>`;
+                    }
+                }
+                
+                // 貼心提示：如果是目前正在打的字，在上面淡淡顯示羅馬拼音提示
+                if (isCurrentBlock && block.roma.trim() !== "") {
+                    html += `<span class="roma-tip">${block.roma}</span>`;
+                }
+
+                if (val.length - 1 >= blockGlobalStart && val.length - 1 < blockGlobalEnd && (val.length - 1 === blockGlobalStart + correctCount - 1 || val.length === blockGlobalEnd - 1)) {
+                    // 游標放置邏輯
+                }
+                
+                html += `</span>`;
+                
+                // 空格渲染
+                if (m < line.mapArr.length - 1) html += " ";
+            }
+
+            // 換行時補上游標檢測
+            if (val.length === globalRomaCursor + line.romaStr.length - 1) {
+                html += `<span class="cursor"></span>`;
+            }
+            html += "\n";
+            globalRomaCursor += line.romaStr.length;
+        }
+
+        if (val.length === 0) {
+            html = `<span class="cursor"></span>` + html;
+        } else {
+            // 在末尾或中間補上游標
+            html = html.replace(/<\/span>$/, `</span><span class="cursor"></span>`);
+        }
+
+        document.getElementById('text-target').innerHTML = html;
+        
+        // 滾動引擎滾動
+        const curEl = document.querySelector('.current-word-hint') || document.getElementById('text-target');
+        const offset = val.length === 0 ? 0 : (curEl.offsetTop - 20);
+        document.getElementById('scroll-engine').style.transform = `translateY(-${Math.max(0, offset)}px)`;
     }
 
     function updateStats() {
         const val = document.getElementById('invisible-input').value;
-        const target = fullLyricsString;
-        let lineIdx = lineThresholds.findIndex(t => val.length < t);
-        if (lineIdx === -1) lineIdx = current.lyrics.length - 1;
-        document.getElementById('trans-hint').innerText = current.translations[lineIdx] || "";
-        let correct = 0;
-        for(let i=0; i<val.length; i++) if(val[i] === target[i]) correct++;
-        const percent = val.length > 0 ? Math.floor((correct / val.length) * 100) : 0;
-        document.getElementById('stat-display').innerText = `Combo: ${val.length} | ${percent}%`;
         
-        const vocabCard = document.getElementById('card-vocab');
-        if (!current.vocab || current.vocab.length === 0) {
-            vocabCard.classList.add('hidden');
-            return;
+        // 算出目前在哪一行
+        let accumulated = 0;
+        let lineIdx = 0;
+        for (let i = 0; i < processedLines.length; i++) {
+            accumulated += processedLines[i].romaStr.length;
+            if (val.length < accumulated) {
+                lineIdx = i;
+                break;
+            }
+            if (i === processedLines.length - 1) lineIdx = processedLines.length - 1;
         }
 
-        const targetVocab = current.vocab.find(v => {
-            const start = getPos(v.index, v.word);
-            return val.length >= (start - 5) && val.length <= (start + v.word.length);
-        });
-        if (targetVocab) {
-            vocabCard.classList.remove('hidden');
-            document.getElementById('vocab-hint').innerHTML = `
-                <div style="color:var(--highlight); font-size:12px; font-weight:bold; margin-bottom:4px;">KEY VOCAB</div>
-                <b style="font-size:24px; color:var(--primary)">${targetVocab.word}</b> 
-                <div style="color:#aaa; font-size:14px; margin:4px 0;">${targetVocab.k}</div>
-                <div style="font-size:18px; color:#fff;">${targetVocab.n}</div>`;
-        } else {
-            const nextVocab = current.vocab.find(v => getPos(v.index, v.word) > val.length);
-            if (nextVocab) {
-                vocabCard.classList.remove('hidden');
-                document.getElementById('vocab-hint').innerHTML = `<div style="color:#666; font-size:12px;">UPCOMING</div><b style="color:#888; font-size:18px;">${nextVocab.word}</b>`;
-            } else {
-                vocabCard.classList.add('hidden');
-            }
-        }
+        document.getElementById('trans-hint').innerText = current.translations[lineIdx] || "";
+        
+        // 計算精準度
+        let fullTarget = processedLines.map(p => p.romaStr).join('');
+        let correct = 0;
+        for(let i=0; i<val.length; i++) if(val[i] === fullTarget[i]) correct++;
+        const percent = val.length > 0 ? Math.floor((correct / val.length) * 100) : 0;
+        document.getElementById('stat-display').innerText = `Combo: ${val.length} | ${percent}%`;
     }
+
     function changeTheme(color) {
         document.documentElement.style.setProperty('--primary', color);
     }

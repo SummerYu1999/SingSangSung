@@ -4,7 +4,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SingSangSung - The Full Stage</title>
     <script src="This is me"></script> 
-    <script src="mumei"></script>
     
     <style>
         :root { 
@@ -14,6 +13,7 @@
             --card: #353b48; 
             --text: #dfe6e9; 
             --highlight: #ffeaa7; 
+            --glitch-blue: #00d2ff;
         }
         * { box-sizing: border-box; }
         body { 
@@ -75,7 +75,19 @@
         .card.hidden { opacity: 0; transform: translateX(20px); }
 
         #text-target { white-space: pre-wrap; color: rgba(255,255,255,0.2); position: relative; font-size: 32px; line-height: 1.8; font-weight: 500; }
-        .char-ok { color: #fff; text-shadow: 0 0 12px var(--primary); }
+        
+        /* 成功打字時的效果（微調成無害的藍光脈衝，不噴emoji） */
+        .char-ok { 
+            color: #fff; 
+            text-shadow: 0 0 10px var(--glitch-blue);
+            display: inline-block;
+            animation: text-pulse 0.15s ease-out;
+        }
+        @keyframes text-pulse {
+            0% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
         .char-no { color: var(--accent); background: rgba(255,118,117,0.2); border-radius: 4px; }
         .hard-word { border-bottom: 2px dashed var(--highlight); color: #777; }
         .hard-word.active { color: var(--highlight); text-shadow: 0 0 10px var(--highlight); }
@@ -91,20 +103,6 @@
         }
         @keyframes blink { 50% { opacity: 0; } }
 
-        .emoji-particle {
-            position: absolute;
-            pointer-events: none;
-            z-index: 1000;
-            font-size: 32px;
-            animation: lively-fountain var(--duration) forwards cubic-bezier(0.15, 0.85, 0.35, 1.2);
-        }
-
-        @keyframes lively-fountain {
-            0% { transform: translate(0, 0) scale(0) rotate(0deg); opacity: 0; }
-            15% { opacity: 1; transform: translate(calc(var(--mx) * 0.5), -60px) scale(1.4) rotate(var(--r1)); }
-            100% { transform: translate(var(--dx), var(--dy)) scale(0.4) rotate(var(--r2)); opacity: 0; }
-        }
-
         #invisible-input { position: fixed; top: -100px; opacity: 0; }
     </style>
 </head>
@@ -117,7 +115,7 @@
             <select id="song-select" onchange="loadSong()" style="background:#444; color:#fff; border:1px solid #666; border-radius:8px; padding:6px 12px; cursor:pointer;">
                 <option value="">-- 選擇歌曲 --</option>
                 <option value="song2">This Is Me (Greatest Showman)</option>
-                <option value="song1">ムメイ (Mumei)</option> 
+                <option value="mumei">ムメイ (Mumei)</option> 
             </select>
         </div>
         <div id="stat-display" style="font-family: monospace; font-size: 18px; color: var(--primary); font-weight: bold;">Combo: 0 | 0%</div>
@@ -136,18 +134,63 @@
                 <div id="vocab-hint"></div>
             </div>
             <div class="card" id="card-trans" style="border-left-color:#a29bfe;">
-                <div id="trans-hint" style="line-height: 1.5; font-size: 18px; color:#eee;"></div>
+                <div id="trans-hint" style="line-height: 1.5; font-size: 18px; color:#eee; white-space: pre-wrap;"></div>
             </div>
         </div>
     </div>
 
     <script>
+    // 這裡我們建立一個安全的主歌單物件
+    let mainPlaylist = {};
     let current = null, fullLyricsString = "", lineThresholds = [];
+
+    // 【核心修正】網頁載入時，自動去抓 This is me 裡面的 song2，並手動把 mumei 安全塞進去！
+    window.addEventListener('DOMContentLoaded', () => {
+        // 抓取 This is me 檔案宣告的 song2
+        if (typeof songData !== 'undefined' && songData["song2"]) {
+            mainPlaylist["song2"] = songData["song2"];
+        } else if (typeof window.songData !== 'undefined' && window.songData["song2"]) {
+            mainPlaylist["song2"] = window.songData["song2"];
+        }
+
+        // 直接在主程式綁定 mumei 歌詞，字數 1:1 對齊，杜絕任何外部檔案讀取失敗與變數衝突的問題！
+        mainPlaylist["mumei"] = {
+            "title": "ムメイ (Mumei)",
+            "customEmojis": [],
+            "lyrics": [
+                "wasu re te shi matta koto dake o oboe te iru",
+                "pokari to aita ana no saki de kimi to de a tta",
+                "na mae mo kao mo waka ra nai kimi",
+                "nan daka natsu ka shi i youna kiga shi ta",
+                "taga i na ana ume tei ku you ni",
+                "fusa ge atte wara i atte",
+                "sekai a a a a a ai no doko ga ni iru kimi no tame",
+                "ima a a a a a i ki tei ru yo boku ra mumei no mama"
+            ],
+            "translations": [
+                "【忘れてしまったことだけを覚えている】\n僅僅只記得那些早已忘卻的事物",
+                "【ぽかりと空いた穴の先で君と出会った】\n在破裂的空洞的那端和你相遇了",
+                "【名前も顔もわからない君】\n無論是你的名字還是臉龐全都不清楚",
+                "【なんだか懐かしいような気がした】\n卻不知為何令人有了似曾相似的感覺",
+                "【互いに穴埋めていくように】\n像是互相填補對方的空洞一般",
+                "【ふさげあって　笑いあって】\n共同嬉鬧 共同歡笑",
+                "【世界（Ahh*6）のどこがにいる君のため】\n為了存在於世界之中某處的你",
+                "【今（Ahh*5）生きているよ　僕ら無名のまま】\n現在依然活著的我們始終無名"
+            ],
+            "vocab": [
+                { "word": "wasu re te", "index": 0, "k": "忘れて", "n": "忘記" },
+                { "word": "na mae", "index": 2, "k": "名前", n: "名字" }
+            ],
+            "backingVocals": []
+        };
+    });
 
     function loadSong() {
         const key = document.getElementById('song-select').value;
-        if (typeof songData !== 'undefined' && songData[key]) {
-            current = songData[key];
+        
+        // 從我們建立的安全歌單中抓歌
+        if (mainPlaylist[key]) {
+            current = mainPlaylist[key];
         } else {
             document.getElementById('game-view').style.display = 'none';
             return;
@@ -174,98 +217,33 @@
         setTimeout(() => document.getElementById('invisible-input').focus(), 100);
     }
 
-    function spawnEffect(text, isOh = false) {
-        const cursor = document.querySelector('.cursor');
-        if (!cursor) return;
-        const rect = cursor.getBoundingClientRect();
-        const winRoot = document.getElementById('window-root');
-        const winRect = winRoot.getBoundingClientRect();
-        
-        const el = document.createElement('div');
-        el.className = 'emoji-particle';
-        el.innerText = text;
-        
-        const duration = isOh ? 1.8 : (0.8 + Math.random() * 0.7);
-        const mx = (Math.random() - 0.5) * 80; 
-        const dx = (Math.random() - 0.5) * 400; 
-        const dy = -300 - (Math.random() * 300); 
-        const r1 = (Math.random() * 90) + "deg"; 
-        const r2 = (Math.random() * 360) + "deg";
-        
-        el.style.setProperty('--duration', `${duration}s`);
-        el.style.setProperty('--mx', `${mx}px`);
-        el.style.setProperty('--dx', `${dx}px`);
-        el.style.setProperty('--dy', `${dy}px`);
-        el.style.setProperty('--r1', r1);
-        el.style.setProperty('--r2', r2);
-        
-        el.style.left = (rect.left - winRect.left) + "px";
-        el.style.top = (rect.top - winRect.top) + "px";
-        
-        if (isOh) {
-            el.style.fontSize = "48px";
-            el.style.filter = "drop-shadow(0 0 20px gold)";
-        }
-        
-        winRoot.appendChild(el);
-        setTimeout(() => el.remove(), duration * 1000);
-    }
-
-    document.getElementById('invisible-input').addEventListener('input', (e) => {
-        const val = e.target.value;
+    document.getElementById('invisible-input').addEventListener('input', () => {
         render();
         updateStats();
-        
-        const lastWord = val.split(/[\s\n]+/).pop().toLowerCase().replace(/[.,!]/g, '');
-        let lineIdx = lineThresholds.findIndex(t => val.length < t);
-        if (lineIdx === -1) lineIdx = current.lyrics.length - 1;
-        
-        const bv = current.backingVocals.find(b => b.trigger === lastWord && b.index === lineIdx);
-        if (bv) {
-            for(let i=0; i<5; i++) setTimeout(() => spawnEffect(bv.text, true), i * 150);
-            return;
-        }
-
-        if (e.data && current) {
-            const specialList = (current.emojiMap && current.emojiMap[lastWord]) ? current.emojiMap[lastWord] : null;
-            const list = specialList || current.customEmojis || [];
-            if (list.length > 0) {
-                spawnEffect(list[Math.floor(Math.random() * list.length)]);
-            }
-        }
     });
 
-    // 核心修改：增加 displayTarget 的邏輯，但比對依然看原本的 target
     function render() {
         const val = document.getElementById('invisible-input').value;
         const target = fullLyricsString;
-        
-        // 取得要顯示的文字（如果有日文就用日文，否則用英文/羅馬拼音）
-        const displayTarget = (current.displayLyrics) 
-            ? current.displayLyrics.join('\n') + '\n' 
-            : target;
 
         let html = "";
-        const activeVocab = current.vocab.map(v => ({...v, start: getPos(v.index, v.word)}));
+        const activeVocab = current.vocab ? current.vocab.map(v => ({...v, start: getPos(v.index, v.word)})) : [];
 
         for (let i = 0; i < target.length; i++) {
-            const v = activeVocab.find(av => i >= av.start && i < av.start + av.word.length);
+            const av = activeVocab.find(av => i >= av.start && i < av.start + av.word.length);
             let cls = "";
             if (i < val.length) cls = (val[i] === target[i] ? 'char-ok' : 'char-no');
             
-            // 畫面顯示 displayTarget 的內容
-            const charToShow = displayTarget[i] || "";
-            
-            if (v) {
-                const isHitting = val.length >= v.start && val.length <= v.start + v.word.length;
-                html += `<span class="${cls} hard-word ${isHitting ? 'active' : ''}">${charToShow}</span>`;
+            if (av) {
+                const isHitting = val.length >= av.start && val.length <= av.start + av.word.length;
+                html += `<span class="${cls} hard-word ${isHitting ? 'active' : ''}">${target[i]}</span>`;
             } else {
-                html += `<span class="${cls}">${charToShow}</span>`;
+                html += `<span class="${cls}">${target[i]}</span>`;
             }
             if (i === val.length - 1) html += `<span class="cursor"></span>`;
         }
         
-        if (val.length === 0) html = `<span class="cursor"></span>` + displayTarget;
+        if (val.length === 0) html = `<span class="cursor"></span>` + target;
         document.getElementById('text-target').innerHTML = html;
         const curEl = document.querySelector('.cursor') || document.getElementById('text-target');
         const offset = val.length === 0 ? 0 : curEl.offsetTop;
@@ -290,7 +268,13 @@
         for(let i=0; i<val.length; i++) if(val[i] === target[i]) correct++;
         const percent = val.length > 0 ? Math.floor((correct / val.length) * 100) : 0;
         document.getElementById('stat-display').innerText = `Combo: ${val.length} | ${percent}%`;
+        
         const vocabCard = document.getElementById('card-vocab');
+        if (!current.vocab || current.vocab.length === 0) {
+            vocabCard.classList.add('hidden');
+            return;
+        }
+
         const targetVocab = current.vocab.find(v => {
             const start = getPos(v.index, v.word);
             return val.length >= (start - 5) && val.length <= (start + v.word.length);

@@ -46,6 +46,7 @@
             max-width: 1400px; 
             margin: 0 auto; 
             width: 100%; 
+            height: calc(100vh - 80px);
         }
 
         .practice-window { 
@@ -54,13 +55,13 @@
             background: rgba(0,0,0,0.4); 
             backdrop-filter: blur(8px);
             border-radius: 20px; 
-            padding: 60px 40px; 
+            padding: 40px; 
             height: 100%; 
             box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
             border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .sidebar { display: flex; flex-direction: column; gap: 15px; }
+        .sidebar { display: flex; flex-direction: column; gap: 15px; height: 100%; overflow-y: auto; }
         .card { 
             background: rgba(53, 59, 72, 0.9); 
             padding: 18px; 
@@ -70,14 +71,37 @@
         }
         .card.hidden { opacity: 0; transform: translateX(20px); }
 
+        /* 滾動引擎外層：平滑移動 */
+        #scroll-engine {
+            transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 30px; /* 每行歌詞之間維持絕對固定的間距 */
+        }
+
+        /* 歌詞本體：強制不換行，一行就是獨立的一個區塊 */
         #text-target { 
-            white-space: pre-wrap; 
             color: rgba(255,255,255,0.15); 
             position: relative; 
             font-size: 32px; 
-            line-height: 2.8; /* 稍微拉開行高，留出完美的羅馬字常駐空間 */
             font-weight: 500; 
             letter-spacing: 2px; 
+        }
+        
+        /* 每一行歌詞的容器 */
+        .lyric-line {
+            display: flex;
+            flex-wrap: nowrap; /* 核心修正：死都不允許在行內把日文和羅馬字拆散換行 */
+            align-items: flex-end;
+            min-height: 90px;  /* 強制每行固定高度 */
+            padding-bottom: 5px;
+            white-space: nowrap;
+        }
+
+        /* 當前正在輸入的那一行 */
+        .current-line-bg {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
         }
         
         .char-ok { 
@@ -87,9 +111,9 @@
         }
         .char-no { color: var(--accent); background: rgba(255,118,117,0.2); border-radius: 4px; }
         
-        /* 當前正在打的字組提示下底線 */
+        /* 當前正在打的「字組」提示下底線 */
         .current-word-hint {
-            border-bottom: 2px solid rgba(116, 185, 255, 0.6);
+            border-bottom: 2px solid rgba(116, 185, 255, 0.8);
         }
 
         .cursor { 
@@ -102,11 +126,11 @@
         }
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* 羅馬拼音浮動小提示容器 - 改為永遠存在(常駐)，高度固定 */
+        /* 羅馬拼音浮動提示：改為相對於字組頂端絕對定位，且永遠不換行 */
         .roma-tip {
             position: absolute;
             font-size: 14px;
-            top: -26px; /* 牢牢固定在正上方 */
+            top: -28px; 
             left: 50%;
             transform: translateX(-50%);
             white-space: nowrap;
@@ -114,37 +138,34 @@
             letter-spacing: 1px;
             display: flex;
             gap: 1px;
-            height: 18px; /* 強制限定高度，不讓它伸縮 */
+            height: 18px; 
             line-height: 18px;
         }
         
-        /* 羅馬字母基本樣式（還沒打到時，帶有淡淡的透明度，若隱若現） */
         .roma-char {
-            color: rgba(255, 255, 255, 0.2);
-            transition: color 0.1s ease, text-shadow 0.1s ease;
+            color: rgba(255, 255, 255, 0.15);
+            transition: color 0.1s ease;
         }
         
-        /* 當前字組中，還沒打到的字母，稍微亮一點點作為指引 */
         .roma-char-upcoming {
             color: rgba(255, 255, 255, 0.4);
         }
         
-        /* 打對的羅馬字母點亮樣式 */
         .roma-char-ok {
             color: #fff;
             text-shadow: 0 0 5px var(--glitch-blue);
             font-weight: bold;
         }
 
-        /* 已經完美打完的字組，其羅馬字維持超淡顏色 */
         .roma-char-done {
-            color: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.05);
         }
 
         .char-box {
             position: relative;
             display: inline-block;
-            margin-top: 10px;
+            margin-top: 30px; /* 給上方羅馬字留出完全充裕的固定硬空間 */
+            padding: 0 2px;
         }
 
         #invisible-input { position: fixed; top: -100px; opacity: 0; }
@@ -228,13 +249,13 @@
                 "ima a a a a a i ki te iku yo atashi mumei no mama"
             ],
             "displayLyrics": [
-                "忘 れ て し まった こと だけで を 覚え て いる",
+                "忘 れ て し まった こと だけ を 覚え て いる",
                 "ぽかり と 空いた 穴 の 先 で 君 と 出會った",
                 "名 前 も 顔 も わか ら ない 君",
                 "なん だ加 懐 か し い ような 気が し た",
                 "互 い に 穴 埋めて いく ように",
                 "ふさ げ あって 笑 い あって",
-                "世界 a a a a a ai の 邊 か に いる 君 の ため",
+                "世界 a a a a a ai の どこ か に いる 君 の ため",
                 "今 a a a a a i き てい る よ 僕 ら 無名 の まま",
                 "無名 の まま",
                 "たと え 葉 これ 賀 映 し 出 させ た 幻 でも",
@@ -250,10 +271,10 @@
                 "真っ 逆 さま に 落ち て い く",
                 "無名 だ加ら この 世界 に は",
                 "忘 れ られ 消え ちゃう の",
-                "それ でも 君 が 求め る の なら",
+                "sore demo kimi ga moto me ru no nara",
                 "この 胸 に 空いた 穴 に 今",
                 "君 から 私 へ 風 は 通り抜け",
-                "一羽 の 鳥 が 今 君 の 元 へ と 行去",
+                "一羽 の 鳥 が 今 君 の 元 へ と 行く",
                 "世界 a a a a a ai の 邊 か に いる 君 の ため",
                 "今 a a a a a i き て いく よ 私 無名 の まま"
             ],
@@ -364,19 +385,37 @@
 
         if (!isMapMode) {
             let fullTarget = processedLines.map(p => p.romaStr).join('');
+            html += `<div class="lyric-line">`;
             for (let i = 0; i < fullTarget.length; i++) {
                 let cls = "";
                 if (i < val.length) cls = (val[i] === fullTarget[i] ? 'char-ok' : 'char-no');
                 html += `<span class="${cls}">${fullTarget[i]}</span>`;
                 if (i === val.length - 1) html += `<span class="cursor"></span>`;
             }
-            if (val.length === 0) html = `<span class="cursor"></span>` + fullTarget;
+            if (val.length === 0) html += `<span class="cursor"></span>`;
+            html += `</div>`;
             document.getElementById('text-target').innerHTML = html;
             return;
         }
 
+        // 核心改動：精準計算目前在哪一行
+        let activeLineIdx = 0;
+        let tempCursor = 0;
+        for (let i = 0; i < processedLines.length; i++) {
+            tempCursor += processedLines[i].romaStr.length;
+            if (val.length < tempCursor) {
+                activeLineIdx = i;
+                break;
+            }
+            if (i === processedLines.length - 1) activeLineIdx = processedLines.length - 1;
+        }
+
         for (let l = 0; l < processedLines.length; l++) {
             const line = processedLines[l];
+            let isCurrentLine = (l === activeLineIdx);
+            
+            // 每一句都打包進獨立、絕不換行的容器
+            html += `<div class="lyric-line ${isCurrentLine ? 'current-line-bg' : ''}" id="line-track-${l}">`;
             
             for (let m = 0; m < line.mapArr.length; m++) {
                 const block = line.mapArr[m];
@@ -415,7 +454,7 @@
 
                 html += `<span class="char-box ${isCurrentBlock ? 'current-word-hint' : ''}">`;
                 
-                // 1. 渲染日文字本體
+                // 1. 日文字
                 for (let j = 0; j < block.jp.length; j++) {
                     if (j < jpLitCount) {
                         html += `<span class="char-ok">${block.jp[j]}</span>`;
@@ -424,7 +463,7 @@
                     }
                 }
                 
-                // 2. 羅馬拼音改為「常駐架構」，不論進度如何都撐著高度，解決畫面抖動
+                // 2. 羅馬拼音常駐
                 if (block.roma.trim() !== "") {
                     html += `<span class="roma-tip">`;
                     for (let i = 0; i < block.roma.length; i++) {
@@ -445,27 +484,24 @@
                 }
                 
                 html += `</span>`;
-                if (m < line.mapArr.length - 1) html += " ";
+                if (m < line.mapArr.length - 1) html += "<span>&nbsp;</span>";
             }
 
             if (val.length === globalRomaCursor + line.romaStr.length - 1) {
                 html += `<span class="cursor"></span>`;
             }
-            html += "\n";
+            html += `</div>`;
             globalRomaCursor += line.romaStr.length;
-        }
-
-        if (val.length === 0) {
-            html = `<span class="cursor"></span>` + html;
-        } else {
-            html = html.replace(/<\/span>$/, `</span><span class="cursor"></span>`);
         }
 
         document.getElementById('text-target').innerHTML = html;
         
-        const curEl = document.querySelector('.current-word-hint') || document.getElementById('text-target');
-        const offset = val.length === 0 ? 0 : (curEl.offsetTop - 40);
-        document.getElementById('scroll-engine').style.transform = `translateY(-${Math.max(0, offset)}px)`;
+        // 滾動判定改為：對齊「當前正在輸入的那一整行」
+        const activeLineEl = document.getElementById(`line-track-${activeLineIdx}`);
+        if (activeLineEl) {
+            const offset = activeLineEl.offsetTop - 40;
+            document.getElementById('scroll-engine').style.transform = `translateY(-${Math.max(0, offset)}px)`;
+        }
     }
 
     function getPos(lineIdx, word) {
